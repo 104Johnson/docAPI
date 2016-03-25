@@ -15,6 +15,30 @@
 	    <finalName>docAPI</finalName>
 	    
 	    <plugins>
+
+	    	<!-- Code style fix -->
+	    	 <plugin>
+        			<groupId>org.apache.maven.plugins</groupId>
+       				<artifactId>maven-checkstyle-plugin</artifactId>
+        			<version>2.17</version>
+        			<executions>
+				        <execution>
+					        <id>validate</id>
+					        <phase>validate</phase>
+					        <configuration>
+					            <configLocation>google_checks.xml</configLocation>
+			                	<failOnViolation>false</failOnViolation>
+			                	<encoding>UTF-8</encoding>
+         						<consoleOutput>false</consoleOutput>
+         						<linkXRef>false</linkXRef>
+					        </configuration>
+					        <goals>
+					            <goal>check</goal>
+					        </goals>
+				        </execution>
+				    </executions>           
+      		</plugin>
+
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
@@ -73,6 +97,29 @@
 		</plugins>
 		
  	</build>
+ 	
+ 	<!-- mvn pmd:pmd will create report -->
+ 	<reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.6</version>
+        <configuration>
+          <linkXref>true</linkXref>
+          <sourceEncoding>utf-8</sourceEncoding>
+          <minimumTokens>100</minimumTokens>
+          <targetJdk>1.7</targetJdk>
+          <excludes>
+            <exclude>*</exclude>
+          </excludes>
+          <excludeRoots>
+            <excludeRoot>target/generated-sources/stubs</excludeRoot>
+          </excludeRoots>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
  	
 	<!-- dependencies -->
 	<dependencies>
