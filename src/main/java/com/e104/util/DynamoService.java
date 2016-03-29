@@ -21,7 +21,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
-import com.e104.ErrorHandling.DocApplicationException;
+import com.e104.errorhandling.DocApplicationException;
 
 public class DynamoService {
 	

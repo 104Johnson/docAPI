@@ -18,7 +18,7 @@
 		
 		<init-param>
 			<param-name>jaxrs.serviceClasses</param-name>
-			<param-value>com.e104.restapi.model.docAPIImp</param-value>
+			<param-value>com.e104.restapi.service.DocAPIImpl</param-value>
 		</init-param>
 		
 		<init-param>
@@ -30,9 +30,10 @@
 		<init-param>
 			<param-name>jaxrs.providers</param-name>
 			<param-value>
-			    com.e104.ErrorHandling.DocErrorHandler,
-			    com.e104.ErrorHandling.ServerExceptionMapper,
-			    com.e104.ErrorHandling.ClientExceptionMapper
+			    com.e104.errorhandling.DocErrorHandler,
+			    com.e104.errorhandling.ServerExceptionMapper,
+			    com.e104.errorhandling.ClientExceptionMapper,
+			    org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider    
 			</param-value>
 		</init-param>
 	
@@ -56,7 +57,7 @@
 	</servlet>
 	<filter>
 	    <filter-name>ApiOriginFilter</filter-name>
-	    <filter-class>com.e104.restapi.ApiOriginFilter</filter-class>
+	    <filter-class>com.e104.servlet.ApiOriginFilter</filter-class>
 	  </filter>
 	<filter-mapping>
 	    <filter-name>ApiOriginFilter</filter-name>
@@ -65,7 +66,7 @@
 	
     <servlet-mapping>
         <servlet-name>CXFNonSpringJaxrsServlet</servlet-name>
-        <url-pattern>/rest/*</url-pattern>
+        <url-pattern>/*</url-pattern>
     </servlet-mapping>
     
 </web-app>
