@@ -1,4 +1,4 @@
-package com.e104.ErrorHandling;
+package com.e104.errorhandling;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
