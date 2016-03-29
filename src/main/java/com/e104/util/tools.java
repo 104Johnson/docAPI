@@ -339,6 +339,7 @@ public class tools {
 	
 public String decode(String data){
 	String decodeString="";
+	//改回來
 	decodeString = new String(org.apache.commons.codec.binary.Base64.decodeBase64(data));
 	return decodeString;
 }
@@ -346,6 +347,7 @@ public String decode(String data){
 public String encode(String data){
 	String encodeString="";
 	encodeString = org.apache.commons.codec.binary.Base64.encodeBase64String(data.getBytes());
+	//encodeString = org.apache.commons.codec.binary.Base64.encodeBase64(data.getBytes()).toString();
 	return encodeString;
 }
 	
