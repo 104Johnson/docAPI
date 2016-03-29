@@ -1,4 +1,4 @@
-package com.e104.restapi;
+package com.e104.servlet;
 
 import java.io.IOException;
 
