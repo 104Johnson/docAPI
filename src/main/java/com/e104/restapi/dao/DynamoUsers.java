@@ -1,16 +1,17 @@
 package com.e104.restapi.dao;
 
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.e104.errorhandling.DocApplicationException;
 import com.e104.util.DynamoService;
+import com.e104.util.TraceLog;
+
 
 public class DynamoUsers {
 	private String pid;
-	private String fileid;	
+	private byte[] fileid;
 	private String filename;
 	private String filepath;
 	private String apnum;
@@ -24,11 +25,23 @@ public class DynamoUsers {
 	private String expireTimestamp;
 	private int contenttype;
 	private int isP;
+	private String src = "docapi::core::DynamoUsers::";
+	public String trackId = "";
+	public String caller = "";
 	
-	public void insertDynamo(JSONObject users) throws DocApplicationException{
+	public void setTrackId(String trackId){
+		this.trackId = trackId;
+	}
+	
+	public void setCaller(String caller){
+		this.caller = caller;
+	}
+	TraceLog traceLog = new TraceLog();
+	public String insertUsersToDynamo(JSONObject users) throws DocApplicationException{
+		traceLog.writeKinesisLog(trackId, caller, src+"insertUsersToDynamo", "paser users Data", new JSONObject());
 		try{
 			pid = users.getString("pid");
-			fileid = users.getString("fileid");
+			fileid =  users.getString("fileid").getBytes();
 			contenttype = users.getInt("contenttype");
 			filename = users.getString("filename");
 			filepath = users.getString("filepath");
@@ -48,14 +61,16 @@ public class DynamoUsers {
 				expireTimestamp = String.valueOf(users.getLong("expireTimestamp"));
 			
 		}catch(JSONException e){
-			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
+			throw new DocApplicationException("Json格式轉換失敗",1);
 		}
 		
-		this.doInsertDb();
+		return this.doInsertDb();
 			
 	}
 	
-	private void doInsertDb() throws DocApplicationException{
+	private String doInsertDb() throws DocApplicationException{
+		traceLog.writeKinesisLog(trackId, caller, src+"doInsertDb", "insert users table", new JSONObject());
+		String rtn="";
 		try{
 		DynamoService dynamoService = new DynamoService();
 
@@ -81,12 +96,13 @@ public class DynamoUsers {
 				if(expireTimestamp!=null)
 					putItem.withString("expireTimestamp", expireTimestamp);
 				
-		
-		
-		dynamoService.putItem("users", putItem);
+				rtn =dynamoService.putItem("users", putItem);
+
 		}catch(Exception e){
-			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
+			throw new DocApplicationException(e,12);
 		
 		}
+		return rtn;
 	}
+	 
 }

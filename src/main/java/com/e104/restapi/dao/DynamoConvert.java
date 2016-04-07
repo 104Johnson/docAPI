@@ -27,7 +27,7 @@ import com.e104.util.DynamoService;
 import com.e104.util.tools;
 
 public class DynamoConvert {
-	private String fileid;
+	private byte[] fileid;
 	private int contenttype;
 	private String apnum;
 	private String filepath;
@@ -40,7 +40,7 @@ public class DynamoConvert {
 	tools tools = new tools();
 	public void insertDynamo(JSONObject convert) throws DocApplicationException{
 		try{
-		fileid = convert.getString("fileid");
+		fileid = convert.getString("fileid").getBytes();
 		contenttype = convert.getInt("contenttype");
 		apnum = convert.getString("apnum");
 		filepath = convert.getString("filepath");

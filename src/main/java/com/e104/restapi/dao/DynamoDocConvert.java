@@ -65,7 +65,7 @@ public class DynamoDocConvert {
 		this.doInsertDb();
 	}
 	
-	private void doInsertDb(){
+	private void doInsertDb() throws DocApplicationException{
 		DynamoService dynamoService = new DynamoService();
 
 		Item putItem = new Item().withPrimaryKey("fileid",fileid).
