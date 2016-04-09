@@ -783,11 +783,13 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		switch (ContentTypeString.toLowerCase()) {
 		case "image/jpeg":
 			return ContentType.Image;
-		case "video/mpeg":
+		case "video/mpg":
 			return ContentType.Video;
 		case "application/msword":
 			return ContentType.Doc;
-		
+		case "audio/mpeg":
+			return ContentType.Audio;
+			
 		default:
 			return 0;//找不到型態
 		}

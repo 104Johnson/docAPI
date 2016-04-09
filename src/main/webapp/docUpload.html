@@ -76,8 +76,8 @@ function encode(){
 	};
 	var jsonData = {apnum:"10400",
 			pid:"10400",
-			contenttype:"image/jpeg",
-			Content_Disposition:$('#Content-Disposition').val(),
+			contenttype:$('#content-type').val(),
+			contentDisposition:$('#Content-Disposition').val(),
 			isP:1,
 			extra:extraData,
 			title:"測試",
