@@ -4,15 +4,26 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import net.spy.memcached.MemcachedClient;
+
+
+
+
+
+
+
 
 
 
@@ -28,6 +39,16 @@ import org.json.JSONObject;
 
 
 
+
+
+
+
+
+
+
+
+import scala.reflect.internal.Trees.New;
+import scala.reflect.internal.Trees.This;
 
 import com.e104.util.Config;
 
@@ -815,7 +836,9 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 				s_contenttype = "0" + s_contenttype;
 			}
 		}
+		//fileId insert DynamoDB need Binary Type
 		return UUID.randomUUID().toString().replaceAll("-", "")+s_contenttype;
+		//return UUID.randomUUID().toString().replaceAll("-", "")+s_contenttype;
 	}
 	
 	public String generateFilePath(String fid){
@@ -873,5 +896,33 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		//dynamoService.
 		return "";
 	}
+	
+	
+	
+	public String getCurrentUTCTimestamp(Byte timeZoneType) {
+		SimpleDateFormat dateFormatter;
+		final TimeZone utc = TimeZone.getTimeZone("UTC");
+		long returnTime = new java.util.Date().getTime();
+		switch (timeZoneType) {
+		//RFC3999Date格式
+		case 1:
+			dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			//S3 Policy expiration Time
+			returnTime+=(30*1000);
+			break;
+
+		default:
+			dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS z");
+			break;
+		}
+		dateFormatter.setTimeZone(utc);
+
+	    return dateFormatter.format(returnTime);
+	}
+	
+	  public static void main(String[] args) {
+	        System.out.println(new tools().getCurrentUTCTimestamp((byte)1)); // Display the string.
+	        System.out.println(new tools().getCurrentUTCTimestamp((byte)0)); // Display the string.
+	    }
 	
 }
