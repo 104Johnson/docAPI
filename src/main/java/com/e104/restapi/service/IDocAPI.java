@@ -2,7 +2,6 @@ package com.e104.restapi.service;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -12,22 +11,19 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.xml.bind.annotation.XmlElement;
 
 import com.e104.errorhandling.DocApplicationException;
 import com.e104.restapi.model.GetFileUrl;
 import com.e104.restapi.model.Signature;
+import com.e104.restapi.model.UpdateFile;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.Example;
-import io.swagger.models.Swagger;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -35,13 +31,16 @@ import io.swagger.models.Swagger;
 @Path("/rest/services")
 public interface IDocAPI {
 	
-	  @PUT
+	   @PUT
 	   @Path("/addKey")
-	   @ApiOperation(value = "Update user collection key & value")
-	   /**request String {"fileid":"123456789","key":"{"value"}"}
-	    * respone jsonobject string {"txid":"uuid","status":"Success"}
-	    * */
-	   public String addKey();
+	   @ApiOperation(value = "Update user table key & valu", notes = "updateFile", httpMethod = "PUT")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "string") 
+	   public String addKey(@ApiParam(value = "fileId",required=true) @QueryParam("fileid") String fileid,
+			   @ApiParam(value = "key",required=true) @QueryParam("key") String key,
+			   @ApiParam(value = "value",required=true) @QueryParam("value") String value) throws DocApplicationException;
+
+
 	   
 	   @POST
 	   @Path("/checkFileSpec")
@@ -113,10 +112,13 @@ public interface IDocAPI {
 	   
 	   
 	   @DELETE
-	   @Path("/deleteFile/{Param}")
-	   @ApiOperation(value = "delete file", httpMethod = "DELETE")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String deleteFile(@ApiParam(value = "param is decode,need fileid & fileTag & delExtend ", required = true) @PathParam("Param") String Param);
+	   @Path("/deleteFile")
+	   @ApiOperation(value = "delete file", notes = "updateFile", httpMethod = "DELETE")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "string") 
+	   public String deleteFile(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String Param,
+			   @ApiParam(value = "fileTag",required=true) @QueryParam("fileTag") String fileTag,
+			   @ApiParam(value = "delExtend",required=true) @QueryParam("delExtend") String delExtend) throws DocApplicationException;
 	   
 	   @DELETE
 	   @Path("/discardFile/{fileId}")
@@ -143,10 +145,12 @@ public interface IDocAPI {
 	   public String getFile(@ApiParam(value = "Param is decode,need pattern & limit", required = true) @PathParam("Param") String Param);
 	   
 	   @GET
-	   @Path("/getFileDetail/(Param)")
+	   @Path("/getFileDetail")
 	   @ApiOperation(value = "Get file meta by fileId", httpMethod = "GET")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String getFileDetail(@ApiParam(value = "Param is decode,need FileId & tag", required = true) @PathParam("Param") String Param);
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "string") 
+	   public String getFileDetail(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String fileId,
+			   @ApiParam(value = "tag",required=true) @QueryParam("tag") String tag) throws DocApplicationException;
 	   
 	   @GET
 	   @Path("/getFileList/(Param)")
@@ -189,7 +193,7 @@ public interface IDocAPI {
 	   @ApiImplicitParams(
 		   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 
 		  )
-	   public String putfile(String jsonData) throws DocApplicationException;
+	   public String putfile(Signature jsonData) throws DocApplicationException;
 	   
 	   /*
 	   @POST
@@ -228,9 +232,10 @@ public interface IDocAPI {
 	   
 	   @PUT
 	   @Path("/updateFile")
-	   @ApiOperation(value = "update user collection title & description", httpMethod = "PUT")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String updateFile(@ApiParam(value = "Param is decode,need fileId & title & description & fileTag", required = true) @PathParam("Param") String Param);
+	   @ApiOperation(value = "Update title & description to user table ", notes = "updateFile", httpMethod = "PUT")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 
+	   public String updateFile(@ApiParam(value = "JSONObject",required=true)  UpdateFile Param) throws DocApplicationException;
 	   
 	   
 	   @POST
@@ -241,8 +246,9 @@ public interface IDocAPI {
 	   
 	   @GET
 	   @Path("/getStatus/{fileId}")
-	   @ApiOperation(value = "Get convert status", httpMethod = "GET")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
+	   @ApiOperation(value = "getStatus", notes = "GetStatus", tags={  })
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "fileId", value = "String", required = true, dataType = "String", paramType = "String") 
 	   public String getStatus(@ApiParam(value = "fileId", required = true) @PathParam("fileId") String fileId);
 	   
 	   @PUT
@@ -272,10 +278,10 @@ public interface IDocAPI {
 	   
 	   @POST
 	   @Path("/signature")
-	   @ApiOperation(value = "", notes = "GetFileUrl", tags={  })
+	   @ApiOperation(value = "Get S3 signature", notes = "GetFileUrl", tags={  })
 	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
 	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
-	   public String signature(@ApiParam(value = "JSONObject",required=true)  String jsonData) throws DocApplicationException; 
+	   public String signature(@ApiParam(value = "JSONObject",required=true)  Signature jsonData) throws DocApplicationException; 
 	   
 	 //doing##########################################################
 	   
