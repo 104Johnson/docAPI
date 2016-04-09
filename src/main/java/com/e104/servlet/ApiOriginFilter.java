@@ -3,18 +3,28 @@ package com.e104.servlet;
 import java.io.IOException;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.e104.util.tools;
 
 public class ApiOriginFilter implements javax.servlet.Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response,
       FilterChain chain) throws IOException, ServletException {
     HttpServletResponse res = (HttpServletResponse) response;
+    HttpServletRequest req = (HttpServletRequest) request;
+    MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest(req);
+    mutableRequest.putHeader("X-Custom-Tracer-Id", new tools().generateTxid());
+    
     res.addHeader("Access-Control-Allow-Origin", "*");
     res.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
     res.addHeader("Access-Control-Allow-Headers", "Content-Type,application/json");
-    chain.doFilter(request, response);
+   
+    //System.out.println(mutableRequest.getHeader("x-custom-Tracer-Id"));
+    chain.doFilter(mutableRequest, response);
   }
+  
 
   @Override
   public void destroy() {
