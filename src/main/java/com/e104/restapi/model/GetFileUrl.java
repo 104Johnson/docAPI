@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.List;
 
 
+
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+
 
 
 import org.json.JSONObject;
@@ -22,24 +25,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @XmlType(name = "", propOrder = {"fileId", "protocol", "fileTag"})
 public class GetFileUrl {
 	private List<GetFileArr> getfileArr = new ArrayList<>();
-
-
 	private JSONObject rtn = new JSONObject();
 	private String timestamp;
 	
-	//@XmlElementWrapper(name = "getFileArr")
+	@XmlElementWrapper(name = "getFileArr")
 	@XmlElement(name = "getFileArr")
 	public void setFileArr(List<GetFileArr> getFileArr){
 
-		JSONArray jsonArr =new JSONArray();
-	    Collection<GetFileArr> collection = getfileArr;
+		//JSONArray jsonArr =new JSONArray();
+	    Collection<GetFileArr> collection = getFileArr;
 	    this.getfileArr.addAll(collection);
 
 	    
-		this.rtn.put("getFileArr",jsonArr);
+		this.rtn.put("getFileArr",this.getfileArr);
 		
 	}
-	public List<GetFileArr> getFileArr(){
+	public List<GetFileArr> getGetFileArr(){
 		
 		return getfileArr;
 	}
