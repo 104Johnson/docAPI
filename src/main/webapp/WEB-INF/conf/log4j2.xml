@@ -1,0 +1,31 @@
+<Configuration
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:noNamespaceSchemaLocation='Log4j-config.xsd'>
+  
+    <Appenders>
+        <RollingFile name="FileManage" fileName="D:/TestLog/FileManage.log"
+                     filePattern="D:/TestLog/FileManage.%d{yyyy-MM-dd}.%i.log"> <!-- roll over every HOUR -->
+            <PatternLayout>
+                <Pattern>[%p][%d{yyyy-MM-dd HH:mm:ss}][%l][%m]%n</Pattern>
+            </PatternLayout>   
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/> <!-- roll over if log file size exceeds 100 MB -->
+            </Policies>     
+        </RollingFile>       
+          
+        <Console name="consoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy/MM/dd HH:mm:ss:SSS} [%t] %-5p %c %m%n"/>
+        </Console>
+    </Appenders>
+  
+    <Loggers>
+        <Logger name="com.e104.restapi.service.DocAPIImpl" level="INFO" additivity="false">
+            <AppenderRef ref="FileManage"/>
+        </Logger>
+    
+        <Root level="ERROR">
+            <AppenderRef ref="consoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
