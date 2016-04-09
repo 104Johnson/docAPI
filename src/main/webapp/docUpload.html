@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="http://code.jquery.com/jquery-2.2.1.min.js" ></script>
 
-
+<!-- test -->
 </head>
 <body>
 <input type="radio" name="ctype" value="image/jpeg">Image
@@ -40,9 +40,12 @@ acl<input type="text" id="acl" name="acl" value="public-read" />
 
 <input name="submit" value="Upload" type="submit" />
 </form>
+
+KeyPath:<div id=Key></div>
+Signature:<div id="Signature"></div>
+Policy:<div id="Policy"></div>
 </body>
 <script>
-
 $('input[name=ctype]:radio').click(function() {
 	$('#content-type').val($('input[name=ctype]:checked').val());
 })
@@ -80,16 +83,22 @@ function encode(){
 
 	$.ajax({
 		method:'POST',
-		url:'http://localhost:8080/docAPI/rest/signatureByExtraNo',
+		url:'http://localhost:8080/docAPI/rest/services/signature',
 		contentType: "application/json; charset=utf-8",
 		dataType: 'json',
 		data:JSON.stringify(jsonData)
 		
 		}).done(function(msg){
 			alert("資料建立成功");
-			$('#Content-Disposition').val(msg.Content_Disposition);
+			
+			$('#Key').text(msg.objectKey);
+			$('#Policy').text(msg.policyDocument);
+			$('#Signature').text(msg.signature);
+			
+			
+			$('#Content-Disposition').val(msg.contentDisposition);
 			$('#key').val(msg.objectKey);
-			$('#policy').val(msg.policy_document);
+			$('#policy').val(msg.policyDocument);
 			$('#signature').val(msg.signature);
 			//$('#extra').val(msg.extra);
 		
