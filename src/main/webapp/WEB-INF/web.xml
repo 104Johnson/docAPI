@@ -16,6 +16,9 @@
 		<servlet-name>CXFNonSpringJaxrsServlet</servlet-name>
 		<servlet-class>org.apache.cxf.jaxrs.servlet.CXFNonSpringJaxrsServlet</servlet-class>
 		
+	
+		
+		
 		<init-param>
 			<param-name>jaxrs.serviceClasses</param-name>
 			<param-value>com.e104.restapi.service.DocAPIImpl</param-value>
@@ -33,7 +36,7 @@
 			    com.e104.errorhandling.DocErrorHandler,
 			    com.e104.errorhandling.ServerExceptionMapper,
 			    com.e104.errorhandling.ClientExceptionMapper,
-			    org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider    
+			    org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 			</param-value>
 		</init-param>
 	
@@ -50,15 +53,14 @@
 				/swagger.json 
 			</param-value>
 		</init-param>
-		
-	
-        
 		<load-on-startup>1</load-on-startup>
 	</servlet>
+	
+	
 	<filter>
 	    <filter-name>ApiOriginFilter</filter-name>
 	    <filter-class>com.e104.servlet.ApiOriginFilter</filter-class>
-	  </filter>
+	</filter>
 	<filter-mapping>
 	    <filter-name>ApiOriginFilter</filter-name>
 	    <url-pattern>/*</url-pattern>
