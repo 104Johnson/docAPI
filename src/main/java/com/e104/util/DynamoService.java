@@ -12,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
@@ -31,7 +31,7 @@ public class DynamoService {
 	public static DynamoDB  dynamoinit(){
 
 		DynamoDB dynamoDB = new DynamoDB((AmazonDynamoDB) new AmazonDynamoDBClient(
-				new ProfileCredentialsProvider()).withRegion(Regions.AP_NORTHEAST_1)
+				new DefaultAWSCredentialsProviderChain()).withRegion(Regions.AP_NORTHEAST_1)
 			    .withEndpoint("dynamodb.ap-northeast-1.amazonaws.com"));   
 		
 		return dynamoDB;
