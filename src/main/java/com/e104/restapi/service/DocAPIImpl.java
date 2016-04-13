@@ -4,14 +4,20 @@ package com.e104.restapi.service;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
+import net.spy.memcached.MemcachedClient;
+
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 
@@ -24,6 +30,8 @@ import org.aspectj.weaver.patterns.ThrowsPattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import redis.clients.jedis.Jedis;
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -40,6 +48,7 @@ import com.e104.util.Config;
 import com.e104.util.ContentType;
 import com.e104.util.DateUtil;
 import com.e104.util.DynamoService;
+import com.e104.util.RedisService;
 import com.e104.util.S3Service;
 import com.e104.util.TraceLog;
 import com.e104.util.tools;
@@ -80,6 +89,7 @@ public class DocAPIImpl implements IDocAPI{
 			rtn.put("status", "Success");
 			traceLog.writeKinesisLog(trackId, caller, src, "addKey::End", rtn);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new DocApplicationException(e, 99);
 			//logger.error("addKey("+fileid+","+key+","+value+") Exception", e);
 		}
@@ -126,11 +136,11 @@ public class DocAPIImpl implements IDocAPI{
 	public String encryptParam(String param) throws DocApplicationException {
 		try{
 			JSONObject obj = new JSONObject(param);
-	    	
+			obj.put("actionTimestamp", System.currentTimeMillis());
 	    	param = tools.encode(obj.toString());
 		}
     	catch(JSONException e){
-    		throw new DocApplicationException("NotParsed", 1);
+    		throw new DocApplicationException("Json format Error", 1);
     	}
     	return param;    
 	}
@@ -304,15 +314,93 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String discardFile(String fileId) {
-		// TODO Auto-generated method stub
-		return null;
+	public String discardFile(String fileId) throws DocApplicationException {
+		Logger.info("Enter discardFile(), fileid => " + fileId);
+		
+		JSONObject rtn = new JSONObject();
+		try{
+			if(tools.isEmpty(fileId)){
+				Logger.error("fileId is empty.");
+				return rtn.put("status", "fail").put("error", "fileId is empty.").toString();
+			}
+			
+			JSONObject filedetail = new JSONObject(getFileDetail(fileId, ""));
+			
+			if(tools.isEmpty(filedetail, "fileid")){
+				Logger.error("fileId not exists.");
+				throw new DocApplicationException("fileId not exists.", 15);
+			}
+			
+			String filepath = filedetail.getString("filepath");
+			//String dirPath = FilenameUtils.getFullPath(filepath);
+			String dirPath = tools.get_file_keypath(filepath);
+			
+			if(dirPath!=null && !"".equals(dirPath)){
+				//dirPath =  + dirPath;
+				S3Service s3Service = new S3Service();
+				int fileCount = s3Service.deleteFolder(Config.bucketName, dirPath);
+				
+					addKey(fileId, "disabled", "1");
+					
+					String discardDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+					addKey(fileId, "discardDate", discardDate);
+					
+					return rtn.put("status", "success").put("message", fileCount + " rows deleted.").toString();
+				
+			}
+			else{
+				throw new DocApplicationException("invalid filepath location.", 15);
+			}
+		}
+		catch(Exception e){
+			Logger.error("discardFile error", e);
+			throw new DocApplicationException("fileId is empty.", 15);
+		}
 	}
 
 	@Override
-	public String generateFileId(String Param) {
-		// TODO Auto-generated method stub
-		return null;
+	public String generateFileId(String jsonObj) {
+		Logger.info("Enter generateFileId => " + jsonObj);
+		
+		try{
+			JSONObject paramObj = new JSONObject(jsonObj);
+			
+			String _extraNo = paramObj.optString("extraNo").trim();
+			String _contenttype = paramObj.optString("contenttype").trim();
+			String _isP = paramObj.optString("isP").trim();
+			/*
+			if(!tools.isEmpty(_extraNo)){
+				//FileManageDispatch fm = new FileManageDispatch();
+				DynamoService dynamoService = new DynamoService();
+				dynamoService.getUploadByExtraNo("uploadConfig", _extraNo)
+				JSONObject uploadConfig = fm.findConfig(_extraNo);
+				
+				if(uploadConfig != null){
+					_contenttype = uploadConfig.getString("contenttype");
+					JSONObject itemExtra = uploadConfig.getJSONObject("extra");
+					_isP = itemExtra.has("isP") ? itemExtra.get("isP").toString() : "0";
+				}
+				else
+					return new JSONObject().put("status", "fail").put("msg", "no config for extraNo [" + _extraNo + "]").toString();
+			}
+			else if(isEmpty(_contenttype)){
+				return new JSONObject().put("status", "fail").put("msg", "must provide extraNo or contenttype.").toString();
+			}*/
+			
+			if(tools.isEmpty(_isP))
+				_isP = "0";
+			
+			if(!_isP.matches("[01]") || !_contenttype.matches("[1-5]"))
+				return new JSONObject().put("status", "fail").put("msg", "invalid contenttype or isP format.").toString();
+			
+			String fileId = UUID.randomUUID().toString().replaceAll("-", "") + _isP + _contenttype;
+
+			return new JSONObject().put("status", "success").put("fileId", fileId).toString(); 
+		}
+		catch(JSONException e){
+			Logger.error("generateFileId Error", e);
+			return new JSONObject().put("status", "fail").put("msg", "JSON format error").toString();
+		}
 	}
 
 	@Override
@@ -417,6 +505,7 @@ public class DocAPIImpl implements IDocAPI{
 			extra.put("convert", jsonData.getExtra().getConvert());
 			extra.put("extraNo", jsonData.getExtra().getExtraNo());
 			extra.put("multiAction", jsonData.getExtra().getMultiAction());
+			extra.put("videoImageSize", jsonData.getExtra().getVideoImageSize());
 			paramObj.put("extra", extra);
 			
 			
@@ -749,11 +838,11 @@ public class DocAPIImpl implements IDocAPI{
 		        	}
 		        	break;
 		        case ContentType.Video:	//是否需要影片轉檔
-		        	/*暫時Pass
+		        	
 		        	if(extra_json.has("convert") && extra_json.getString("convert").equals("true")){
 		        		//System.out.println("DEBUG FileManage putFile , " + DateUtil.getDateTimeForLog() + " ,  ENTER VIDEO CONVERT ,fileid=>" + fileid + " , extra_json=>" + extra_json);				        		
-		        		convertVideo(fileid,jsonObj);	
-		        	}*/
+		        		//convertVideo(fileid,extra);	
+		        	}
 		        	break;
 		        case ContentType.WbVideo:	//是否需要影片轉檔
 		        	/*暫時Pass
@@ -819,6 +908,11 @@ public class DocAPIImpl implements IDocAPI{
 			        }
 		        }
 		        
+		        if(extra_json.has("expireTimestamp")){
+		        	String expireTimestamp = String.valueOf(extra_json.getLong("expireTimestamp"));
+		        	Logger.info("putFile with expireTimestamp: " + expireTimestamp);
+		        	this.setExpireTimestamp(fileid, expireTimestamp);
+		        }
 		        			        
 		        //回傳值
 	        	rtn.put("fileId", fileid);
@@ -831,6 +925,8 @@ public class DocAPIImpl implements IDocAPI{
 		
 		}catch(JSONException e){
 			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
+		} catch (DecoderException e) {
+			throw new DocApplicationException("DB operation failed",13);
 		} 
 
 		
@@ -843,11 +939,48 @@ public class DocAPIImpl implements IDocAPI{
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
+	/**
+	 * set the expire date of this fileid. 
+	 * if a fileid expired, all its own files will be deleted by AP. 
+	 * @param fileId
+	 * @param timestamp
+	 * millisecond since 1970/01/01 00:00:00
+	 * @return
+	 * @throws JSONException
+	 */
 	@Override
-	public String setExpireTimestamp(String Param) {
-		// TODO Auto-generated method stub
-		return null;
+	public String setExpireTimestamp(String fileId,String timestamp) {
+			Logger.info("Enter setExpireTimestamp(), fileid => " + fileId + ", timestamp => " + timestamp);
+			
+			JSONObject rtn = new JSONObject();
+			try{
+				if(tools.isEmpty(fileId) || tools.isEmpty(timestamp)){
+					Logger.error("fileId is empty.");
+					return rtn.put("status", "fail").put("error", "fileId or timestamp is empty.").toString();
+				}
+				
+				Date expireDate;
+				try{
+					expireDate = new Date(Long.parseLong(timestamp)*1000);
+				}
+				catch(NumberFormatException e){
+					Logger.error("invalid timestamp format", e);
+					return rtn.put("status", "fail").put("error", "invalid timestamp format.").toString();
+				}
+				
+				String expireDateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(expireDate);
+				
+				Logger.info("add expireTimestamp for " + fileId + " > " + timestamp + "(" + expireDateStr +")");
+				addKey(fileId, "expireTimestamp", timestamp);
+				
+				return rtn.put("status", "success").put("message", "until " + expireDateStr).toString();
+			}
+			catch(Exception e){
+				Logger.error("setExpireTimestamp fail", e);
+				return rtn.put("status", "fail").put("error", "setExpireTimestamp fail.").toString();
+			}
+		
 	}
 	/**
 	 * @method updateFile
@@ -1544,6 +1677,27 @@ public class DocAPIImpl implements IDocAPI{
 								// fileid aa 的 key 不像 getFileUrl 的參數那麼多, 因此 key 值採用簡單處理 (不用json string 來呈現).
 								String cacheKey = "fUrl:aa:" + fileid_aa;
 								
+								try{
+									RedisService redisService = new RedisService();
+									//MemcachedClient redis = redisService.redisClient(); 
+									Jedis redis =  redisService.jedisClient();
+									//redis = Redis.getInstance("FileManage", "RE600001");
+									// redis.open();
+									
+									String cached_aa_fileid = redis.get(cacheKey).toString();
+									if(!tools.isEmpty(cached_aa_fileid)){
+										queryFileIdAndUUIDaaMap.put(cached_aa_fileid, fileid_aa);		// 用於紀錄 fileid <-> filidaa 對應. 於 getFileUrl 解析完成後置換回來
+										real_fileid = cached_aa_fileid;
+									}
+								}
+								catch(Exception e){
+									Logger.error("fail to get aa url cache from redis.", e);
+									throw new DocApplicationException("Redis Error", 14);
+								}
+								finally{
+//									if(redis != null)
+//										redis.close();
+								}
 								
 								
 								// 若 aa fileid 找不到對應的 cache, 就到 mongo 抓.
@@ -1759,7 +1913,9 @@ public class DocAPIImpl implements IDocAPI{
 			// TODO Auto-generated method stub
 			return null;
 		}
-		
+		/**
+		 * Get Request Header Value
+		 * */
 		private void getHeaderValue(){
 			if (context!=null){
 				trackId = context.getHttpServletRequest().getHeader("X-Custom-Tracer-Id");
@@ -1769,5 +1925,6 @@ public class DocAPIImpl implements IDocAPI{
 			   }
 			}
 		}
+		
 		
 }

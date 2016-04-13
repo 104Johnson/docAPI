@@ -100,15 +100,17 @@ public interface IDocAPI {
 	   
 	   @GET
 	   @Path("/decryptParam/{param}")
-	   @ApiOperation(value = "decrypt", httpMethod = "GET")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
+	   @ApiOperation(value = "Data encrypt", notes = "EncryptParam", httpMethod = "GET")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "param", value = "EncryptCode", required = true, dataType = "string", paramType = "string") 	  
 	   public String decryptParam(@ApiParam(value = "decrypt data", required = true) @PathParam("param") String param);
 	   
-	   @GET
-	   @Path("/encryptParam/{param}")
-	   @ApiOperation(value = "encrypt", httpMethod = "GET")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String encryptParam(@ApiParam(value = "encrypt data", required = true) @PathParam("param") String param) throws DocApplicationException;
+	   @POST
+	   @Path("/encryptParam")
+	   @ApiOperation(value = "Data encrypt", notes = "EncryptParam", httpMethod = "POST")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
+	   public String encryptParam(@ApiParam(value = "encrypt data", required = true)  String param) throws DocApplicationException;
 	   
 	   
 	   @DELETE
@@ -116,15 +118,16 @@ public interface IDocAPI {
 	   @ApiOperation(value = "delete file", notes = "updateFile", httpMethod = "DELETE")
 	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
 	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "string") 
-	   public String deleteFile(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String Param,
+	   public String deleteFile(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String fileId,
 			   @ApiParam(value = "fileTag",required=true) @QueryParam("fileTag") String fileTag,
 			   @ApiParam(value = "delExtend",required=true) @QueryParam("delExtend") String delExtend) throws DocApplicationException;
 	   
 	   @DELETE
 	   @Path("/discardFile/{fileId}")
 	   @ApiOperation(value = "delete files by fileId", httpMethod = "DELETE")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String discardFile(@ApiParam(value = "fileId", required = true) @PathParam("fileId") String fileId);
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "fileid", value = "22883ab0899047c28da1969df4dabab211", required = true, dataType = "string", paramType = "string") 
+	   public String discardFile(@ApiParam(value = "fileid", required = true) @PathParam("fileId") String fileId) throws DocApplicationException;
 	   
 	   @GET
 	   @Path("/generateFileId/(Param)")
@@ -190,9 +193,7 @@ public interface IDocAPI {
 	   @Path("/putfile")
 	   @ApiOperation(value = "", notes = "產生上傳檔案前呼叫，產生檔案名稱", response = DocAPIImpl.class)
 	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
-	   @ApiImplicitParams(
-		   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 
-		  )
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 
 	   public String putfile(Signature jsonData) throws DocApplicationException;
 	   
 	   /*
@@ -226,9 +227,11 @@ public interface IDocAPI {
 	   
 	   @PUT
 	   @Path("/setExpireTimestamp")
-	   @ApiOperation(value = "set user collection ExpireTimestamp", httpMethod = "PUT")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String setExpireTimestamp(@ApiParam(value = "Param is decode,need fileId & key", required = true) @PathParam("Param") String Param);
+	   @ApiOperation(value = "Data encrypt", notes = "set user collection ExpireTimestamp", httpMethod = "PUT")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
+	   public String setExpireTimestamp(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String fileId,
+			   @ApiParam(value = "timestamp", required = true) @QueryParam("timestamp") String timestamp);
 	   
 	   @PUT
 	   @Path("/updateFile")
@@ -278,7 +281,7 @@ public interface IDocAPI {
 	   
 	   @POST
 	   @Path("/signature")
-	   @ApiOperation(value = "Get S3 signature", notes = "GetFileUrl", tags={  })
+	   @ApiOperation(value = "Get S3 signature", notes = "GetFileUrl", httpMethod = "POST")
 	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
 	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
 	   public String signature(@ApiParam(value = "JSONObject",required=true)  Signature jsonData) throws DocApplicationException; 
