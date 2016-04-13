@@ -28,12 +28,14 @@ import net.spy.memcached.MemcachedClient;
 
 
 
+
 //import org.apache.catalina.util.Base64;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 
 
 
@@ -68,6 +70,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.e104.enums.Protocol;
+import com.e104.errorhandling.DocApplicationException;
 import com.e104.util.ContentType;
 
 public class tools {
@@ -137,8 +140,8 @@ public class tools {
 		return UUIDaa;
 	}
 	
-	public void setUrlCache(String key, String value){
-		MemcachedClient redis = new redisService().redisClient();
+	public void setUrlCache(String key, String value) throws DocApplicationException{
+		MemcachedClient redis = new RedisService().redisClient();
 		try{
 			
 //			redis.open();			
@@ -361,13 +364,13 @@ public class tools {
 public String decode(String data){
 	String decodeString="";
 	//改回來
-	decodeString = new String(org.apache.commons.codec.binary.Base64.decodeBase64(data));
+	decodeString = new String(Base64.decodeBase64(data));
 	return decodeString;
 }
 
 public String encode(String data){
 	String encodeString="";
-	encodeString = org.apache.commons.codec.binary.Base64.encodeBase64String(data.getBytes());
+	encodeString = Base64.encodeBase64String(data.getBytes());
 	//encodeString = org.apache.commons.codec.binary.Base64.encodeBase64(data.getBytes()).toString();
 	return encodeString;
 }
@@ -675,9 +678,11 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 							case HTTP:
 							case HTTPS:
 							case COMMON:
-								filetype = ".mp4";
+								filetype = ".wmv";//要改回mp4
 								// filepath = filepath +"_v1_480p";
-								filepath = filepath +"_v1_" + quality;
+								//TODO Johnson 記得補回來，現在還沒有轉檔
+								//filepath = filepath +"_v1_" + quality;
+								
 								//2014-01-09 fix for md5 encrypt												
 								// fileCheckExist = filepath + "_v1_480p.mp4";
 								urlArr.add(this.generateFileURLforPublic(filepath + filetype,Long.parseLong(timestamp), 1, protocol));
@@ -783,7 +788,7 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		switch (ContentTypeString.toLowerCase()) {
 		case "image/jpeg":
 			return ContentType.Image;
-		case "video/mpg":
+		case "video/mpeg":
 			return ContentType.Video;
 		case "application/msword":
 			return ContentType.Doc;
@@ -893,6 +898,18 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		return data;
 	}
 	
+	public Map<String, String> json2MapObj(JSONObject object){
+		Iterator<String> keysItr = object.keys();
+		Map<String,String> data = new HashMap<String,String>();
+		while(keysItr.hasNext()) {
+			String key = keysItr.next();
+		    String value = object.getJSONObject(key).toString();
+		    data.put(key, value);
+		}
+		
+		return data;
+	}
+	
 	public String getUploadConfig(String extraNo){
 		DynamoService dynamoService = new DynamoService();
 		//dynamoService.
@@ -921,6 +938,8 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 
 	    return dateFormatter.format(returnTime);
 	}
+	
+	
 	
 	  public static void main(String[] args) {
 	        System.out.println(new tools().getCurrentUTCTimestamp((byte)1)); // Display the string.
