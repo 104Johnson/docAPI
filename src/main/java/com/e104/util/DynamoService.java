@@ -81,7 +81,7 @@ public class DynamoService {
 			    UpdateItemSpec updateItemSpec = new UpdateItemSpec()
 	            .withPrimaryKey("fileid", fileId)
 	            .withUpdateExpression("set #key = :value")
-	            .withConditionExpression("#p = :val2")
+	            .withConditionExpression("attribute_exists(fileid)")
 	            .withNameMap(new NameMap()
 	                .with("#key", key))
 	            .withValueMap(new ValueMap()
