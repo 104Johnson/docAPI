@@ -7,7 +7,7 @@
 </head>
 <body>
 <input type="radio" name="ctype" value="image/jpeg">Image
-<input type="radio" name="ctype" value="video/mpg">Video
+<input type="radio" name="ctype" value="video/mpeg">Video
 <input type="radio" name="ctype" value="application/msword">doc
 <input type="radio" name="ctype" value="audio/mpeg">Audio
 
@@ -42,7 +42,7 @@ acl<input type="text" id="acl" name="acl" value="public-read" />
 
 <input name="submit" value="Upload" type="submit" />
 </form>
-
+<video src="https://e104-doc-api-file-store.s3.amazonaws.com/de9/6e8/2aa/b0dc4bcd58474c8eb63a78e1b018b80313.wmv?AWSAccessKeyId=AKIAJXGZ6BOIVQHUNNAQ&Expires=1469527003&Signature=2FOwNPaXaCjox0AgKCjBw%2BP6kCY%3D" controls></video>
 KeyPath:<div id=Key></div>
 Signature:<div id="Signature"></div>
 Policy:<div id="Policy"></div>
@@ -74,6 +74,12 @@ function encode(){
 			convert:"false",
 			extraNo:"09b87a95-6ef4-4d23-aca6-660521a3968e"	
 	};
+	var videoImageSizeData = [{
+		width:300,
+		height:300,
+		tag:"demo",
+		sec:3
+	}]
 	var jsonData = {apnum:"10400",
 			pid:"10400",
 			contenttype:$('#content-type').val(),
@@ -81,8 +87,14 @@ function encode(){
 			isP:1,
 			extra:extraData,
 			title:"測試",
-			description:"測試"};
-
+			description:"測試"
+	};
+	
+	if ($('#content-type').val()=="video/mpeg"){
+		jsonData.extra.videoImageSize=videoImageSizeData;
+		jsonData.extra.convert="true";
+	}
+	
 	$.ajax({
 		method:'POST',
 		url:'http://localhost:8080/docAPI/rest/services/signature',
