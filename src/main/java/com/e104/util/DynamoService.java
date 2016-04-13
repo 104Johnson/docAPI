@@ -24,7 +24,7 @@ import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.util.BinaryUtils;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.ErrorHandling.DocApplicationException;
 
 public class DynamoService {
 	
