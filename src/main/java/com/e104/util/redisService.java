@@ -3,10 +3,14 @@ package com.e104.util;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import redis.clients.jedis.Jedis;
+
+import com.e104.errorhandling.DocApplicationException;
+
 import net.spy.memcached.MemcachedClient;
 
-public class redisService {
-	public MemcachedClient redisClient(){
+public class RedisService {
+	public MemcachedClient redisClient() throws DocApplicationException{
 		String configEndpoint = "docurlcache.abjn5b.0001.apne1.cache.amazonaws.com";
         Integer clusterPort = 6379;
 
@@ -16,11 +20,16 @@ public class redisService {
 			        new InetSocketAddress(configEndpoint, 
 			                              clusterPort));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
+			throw new DocApplicationException("redis Error", 14);
 		}
-        //redis.get
         return redis;
 		
+	}
+	public Jedis jedisClient(){
+		
+		Jedis jedis = new Jedis("localhost");
+		return jedis;
 	}
 }

@@ -63,7 +63,7 @@
 		        <configuration>
 		          <apiSources>
 		            <apiSource>
-		              <locations>com.e104.restapi.docAPI</locations>
+		              <locations>com.e104.restapi.service.IDocAPI</locations>
 		              <basePath>/docAPI</basePath>
 		              <info>
 		                <title>Swagger Maven Plugin Sample</title>
@@ -144,13 +144,60 @@
 	      <artifactId>cxf-rt-transports-http</artifactId>
 	      <version>3.1.5</version>
 	    </dependency>
-	    
+	    <dependency>
+	      <groupId>org.apache.cxf</groupId>
+	      <artifactId>cxf-rt-rs-extension-providers</artifactId>
+	      <version>3.1.5</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>javax.ws.rs</groupId>
+	      <artifactId>jsr311-api</artifactId>
+	      <version>1.1.1</version>
+	    </dependency>
+	    <dependency> 
+            <groupId>org.apache.cxf</groupId> 
+            <artifactId>cxf-rt-transports-http-jetty</artifactId> 
+            <version>3.1.5</version> 
+        </dependency>
+        
+        
+	   
+        
 	    <!-- json -->
 	    <dependency>
 	      <groupId>org.json</groupId>
 	      <artifactId>json</artifactId>
-	      <version>20140107</version>
+	      <version>20131018</version>
 	    </dependency>
+	    
+	    <dependency>
+	        <groupId>org.codehaus.jackson</groupId>
+	        <artifactId>jackson-xc</artifactId>
+	        <version>1.9.0</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.codehaus.jackson</groupId>
+	        <artifactId>jackson-jaxrs</artifactId>
+	        <version>1.9.0</version>
+	    </dependency>
+
+		<dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-core</artifactId>
+		  <version>2.6.3</version>
+		</dependency>
+		 
+		<dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-databind</artifactId>
+		  <version>2.6.3</version>
+		</dependency>
+		 
+		<dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-annotations</artifactId>
+		  <version>2.6.3</version>
+		</dependency>
 
 		<!-- aws -->
 	    <dependency>
@@ -204,6 +251,13 @@
 			<artifactId>scala-reflect</artifactId>
 			<version>2.11.8</version>
 		</dependency>
+		<!-- Redis client -->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+		
 		
 	
 		

@@ -1,4 +1,4 @@
-package com.e104.ErrorHandling;
+package com.e104.errorhandling;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -30,7 +30,8 @@ public class DocErrorHandler implements ExceptionMapper<DocApplicationException>
 				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
 			case 3:
 				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
-					
+			case 12:
+				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
 			default:
 				return Response.serverError().build();
 			}

@@ -1,7 +1,10 @@
-package com.e104.restapi.model;
+package com.e104.restapi.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.*;
@@ -9,7 +12,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.e104.ErrorHandling.DocApplicationException;
+import com.e104.errorhandling.DocApplicationException;
+import com.e104.restapi.model.GetFileArr;
+import com.e104.restapi.model.GetFileUrl;
 import com.e104.util.Config;
 import com.e104.util.Convert;
 import com.e104.util.DateUtil;
@@ -192,8 +197,8 @@ public class ImageProcess {
 						
 					}
 				}
-				//TODO Update status in 'convert' collection
-				dynamoService.updateItem("convert", fileId, "status", statusObj);
+				//TODO Johnson Update status in 'convert' collection,Check update is need 
+				//dynamoService.updateItem("convert", fileId, "status", statusObj);
 				
 				
 				// "filelist":{ "tag1":{"origin":{"fileId": "xxx", "url": "xxx"}, "new":{"fileId": "xxx","url": "xxx"} }		
@@ -398,7 +403,7 @@ public class ImageProcess {
 		String timestamp = String.valueOf(new java.util.Date().getTime() + urlExpiredTime);
 		rtn.put("fileId",fileId);//{"fileId":"xxxx"}
 		if(isGetUrl == 1){
-			docAPIImp fm = new docAPIImp();
+			DocAPIImpl fm = new DocAPIImpl();
 			JSONArray params = new JSONArray();
 			JSONObject t = new JSONObject();
 			t.put("fileId", fileId);
@@ -412,8 +417,19 @@ public class ImageProcess {
 			params.put(t);
 			//TODO Johnson記得在參數內需加入timestamp.method name 也要改回getFileUrl
 			//JSONArray res = new JSONArray(fm.getFileUrl(params.toString(), timestamp));
-			JSONArray res = new JSONArray(fm.getFileUrlnoRedis(params.toString()));
+			//JSONArray res = new JSONArray(fm.getFileUrlnoRedis(params.toString()));
+			GetFileArr getFileArr = new GetFileArr();
+			getFileArr.setFileId(fileId);
+			getFileArr.setFileTag(tag);
+			if (t.has("protocol"))
+				getFileArr.setProtocol("https");
 			
+			List<GetFileArr> fileArr = new ArrayList<>();
+			fileArr.add(getFileArr);
+			
+			GetFileUrl getFileUrl = new GetFileUrl();
+			getFileUrl.setFileArr(fileArr);
+			JSONArray res = new JSONArray(fm.getFileUrl(getFileUrl));
 			rtn.put("url", res.getJSONObject(0).getJSONArray("url"));
 		}
 		return rtn;		

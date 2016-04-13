@@ -3,12 +3,14 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script src="http://code.jquery.com/jquery-2.2.1.min.js" ></script>
 
-
+<!-- test -->
 </head>
 <body>
 <input type="radio" name="ctype" value="image/jpeg">Image
-<input type="radio" name="ctype" value="video/mpg">Video
+<input type="radio" name="ctype" value="video/mpeg">Video
 <input type="radio" name="ctype" value="application/msword">doc
+<input type="radio" name="ctype" value="audio/mpeg">Audio
+
 
 <!-- mongoDb data check -->
 apnum<input type="text" id="apNum" value="10400">
@@ -40,9 +42,12 @@ acl<input type="text" id="acl" name="acl" value="public-read" />
 
 <input name="submit" value="Upload" type="submit" />
 </form>
+<video src="https://e104-doc-api-file-store.s3.amazonaws.com/de9/6e8/2aa/b0dc4bcd58474c8eb63a78e1b018b80313.wmv?AWSAccessKeyId=AKIAJXGZ6BOIVQHUNNAQ&Expires=1469527003&Signature=2FOwNPaXaCjox0AgKCjBw%2BP6kCY%3D" controls></video>
+KeyPath:<div id=Key></div>
+Signature:<div id="Signature"></div>
+Policy:<div id="Policy"></div>
 </body>
 <script>
-
 $('input[name=ctype]:radio').click(function() {
 	$('#content-type').val($('input[name=ctype]:checked').val());
 })
@@ -69,27 +74,45 @@ function encode(){
 			convert:"false",
 			extraNo:"09b87a95-6ef4-4d23-aca6-660521a3968e"	
 	};
+	var videoImageSizeData = [{
+		width:300,
+		height:300,
+		tag:"demo",
+		sec:3
+	}]
 	var jsonData = {apnum:"10400",
 			pid:"10400",
-			contenttype:"image/jpeg",
-			Content_Disposition:$('#Content-Disposition').val(),
+			contenttype:$('#content-type').val(),
+			contentDisposition:$('#Content-Disposition').val(),
 			isP:1,
 			extra:extraData,
 			title:"測試",
-			description:"測試"};
-
+			description:"測試"
+	};
+	
+	if ($('#content-type').val()=="video/mpeg"){
+		jsonData.extra.videoImageSize=videoImageSizeData;
+		jsonData.extra.convert="true";
+	}
+	
 	$.ajax({
 		method:'POST',
-		url:'http://localhost:8080/docAPI/rest/signatureByExtraNo',
+		url:'http://localhost:8080/docAPI/rest/services/signature',
 		contentType: "application/json; charset=utf-8",
 		dataType: 'json',
 		data:JSON.stringify(jsonData)
 		
 		}).done(function(msg){
 			alert("資料建立成功");
-			$('#Content-Disposition').val(msg.Content_Disposition);
+			
+			$('#Key').text(msg.objectKey);
+			$('#Policy').text(msg.policyDocument);
+			$('#Signature').text(msg.signature);
+			
+			
+			$('#Content-Disposition').val(msg.contentDisposition);
 			$('#key').val(msg.objectKey);
-			$('#policy').val(msg.policy_document);
+			$('#policy').val(msg.policyDocument);
 			$('#signature').val(msg.signature);
 			//$('#extra').val(msg.extra);
 		

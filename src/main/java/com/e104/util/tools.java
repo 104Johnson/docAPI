@@ -4,15 +4,27 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import net.spy.memcached.MemcachedClient;
+
+
+
+
+
+
+
+
 
 
 
@@ -28,6 +40,17 @@ import org.json.JSONObject;
 
 
 
+
+
+
+
+
+
+
+
+
+import scala.reflect.internal.Trees.New;
+import scala.reflect.internal.Trees.This;
 
 import com.e104.util.Config;
 
@@ -47,6 +70,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.e104.enums.Protocol;
+import com.e104.errorhandling.DocApplicationException;
 import com.e104.util.ContentType;
 
 public class tools {
@@ -116,8 +140,8 @@ public class tools {
 		return UUIDaa;
 	}
 	
-	public void setUrlCache(String key, String value){
-		MemcachedClient redis = new redisService().redisClient();
+	public void setUrlCache(String key, String value) throws DocApplicationException{
+		MemcachedClient redis = new RedisService().redisClient();
 		try{
 			
 //			redis.open();			
@@ -339,13 +363,15 @@ public class tools {
 	
 public String decode(String data){
 	String decodeString="";
-	decodeString = new String(org.apache.commons.codec.binary.Base64.decodeBase64(data));
+	//改回來
+	decodeString = new String(Base64.decodeBase64(data));
 	return decodeString;
 }
 
 public String encode(String data){
 	String encodeString="";
-	encodeString = org.apache.commons.codec.binary.Base64.encodeBase64String(data.getBytes());
+	encodeString = Base64.encodeBase64String(data.getBytes());
+	//encodeString = org.apache.commons.codec.binary.Base64.encodeBase64(data.getBytes()).toString();
 	return encodeString;
 }
 	
@@ -652,9 +678,11 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 							case HTTP:
 							case HTTPS:
 							case COMMON:
-								filetype = ".mp4";
+								filetype = ".wmv";//要改回mp4
 								// filepath = filepath +"_v1_480p";
-								filepath = filepath +"_v1_" + quality;
+								//TODO Johnson 記得補回來，現在還沒有轉檔
+								//filepath = filepath +"_v1_" + quality;
+								
 								//2014-01-09 fix for md5 encrypt												
 								// fileCheckExist = filepath + "_v1_480p.mp4";
 								urlArr.add(this.generateFileURLforPublic(filepath + filetype,Long.parseLong(timestamp), 1, protocol));
@@ -764,7 +792,9 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 			return ContentType.Video;
 		case "application/msword":
 			return ContentType.Doc;
-		
+		case "audio/mpeg":
+			return ContentType.Audio;
+			
 		default:
 			return 0;//找不到型態
 		}
@@ -813,7 +843,9 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 				s_contenttype = "0" + s_contenttype;
 			}
 		}
+		//fileId insert DynamoDB need Binary Type
 		return UUID.randomUUID().toString().replaceAll("-", "")+s_contenttype;
+		//return UUID.randomUUID().toString().replaceAll("-", "")+s_contenttype;
 	}
 	
 	public String generateFilePath(String fid){
@@ -866,10 +898,52 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		return data;
 	}
 	
+	public Map<String, String> json2MapObj(JSONObject object){
+		Iterator<String> keysItr = object.keys();
+		Map<String,String> data = new HashMap<String,String>();
+		while(keysItr.hasNext()) {
+			String key = keysItr.next();
+		    String value = object.getJSONObject(key).toString();
+		    data.put(key, value);
+		}
+		
+		return data;
+	}
+	
 	public String getUploadConfig(String extraNo){
 		DynamoService dynamoService = new DynamoService();
 		//dynamoService.
 		return "";
 	}
+	
+	
+	
+	public String getCurrentUTCTimestamp(Byte timeZoneType) {
+		SimpleDateFormat dateFormatter;
+		final TimeZone utc = TimeZone.getTimeZone("UTC");
+		long returnTime = new java.util.Date().getTime();
+		switch (timeZoneType) {
+		//RFC3999Date格式
+		case 1:
+			dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			//S3 Policy expiration Time
+			returnTime+=(30*1000);
+			break;
+
+		default:
+			dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS z");
+			break;
+		}
+		dateFormatter.setTimeZone(utc);
+
+	    return dateFormatter.format(returnTime);
+	}
+	
+	
+	
+	  public static void main(String[] args) {
+	        System.out.println(new tools().getCurrentUTCTimestamp((byte)1)); // Display the string.
+	        System.out.println(new tools().getCurrentUTCTimestamp((byte)0)); // Display the string.
+	    }
 	
 }
