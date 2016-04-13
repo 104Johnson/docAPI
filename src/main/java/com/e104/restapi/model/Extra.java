@@ -10,7 +10,7 @@ public class Extra {
 		private String convert;
 		private String extraNo;
 		private List<MultiAction> multiAction = new ArrayList<>();
-		
+		private List<VideoImageSize> videoImageSize = new ArrayList<>();
 		
 		@XmlElement(name = "convert")
 		public void setConvert(String convert){
@@ -35,4 +35,13 @@ public class Extra {
 		public List<MultiAction> getMultiAction(){
 			return this.multiAction;
 		}
+		
+		@XmlElement(name = "videoImageSize")
+		public void setVideoImageSize(List<VideoImageSize> videoImageSize){
+			this.videoImageSize = videoImageSize;
+		}
+		public List<VideoImageSize> getVideoImageSize(){
+			return this.videoImageSize;
+		}
+		
 }
