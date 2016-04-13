@@ -1,12 +1,19 @@
 package com.e104.restapi.dao;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.util.BinaryUtils;
 import com.e104.errorhandling.DocApplicationException;
 import com.e104.util.DynamoService;
 import com.e104.util.TraceLog;
+import com.e104.util.tools;
 
 
 public class DynamoUsers {
@@ -18,7 +25,7 @@ public class DynamoUsers {
 	private String description;
 	private String insertdate;
 	private String imgstatus;
-	private String videoQuality;
+	private  Map<String, String> videoQuality;
 	private String convert;
 	private String title;
 	private String source;
@@ -41,7 +48,7 @@ public class DynamoUsers {
 		traceLog.writeKinesisLog(trackId, caller, src+"insertUsersToDynamo", "paser users Data", new JSONObject());
 		try{
 			pid = users.getString("pid");
-			fileid =  users.getString("fileid").getBytes();
+			fileid =  Hex.decodeHex(users.getString("fileid").toCharArray());
 			contenttype = users.getInt("contenttype");
 			filename = users.getString("filename");
 			filepath = users.getString("filepath");
@@ -56,12 +63,14 @@ public class DynamoUsers {
 			if(users.has("source")) 
 				source = users.getString("source");
 			if(users.has("videoQuality"))
-				videoQuality = users.getString("videoQuality");
+				videoQuality = new HashMap<String,String>(new tools().json2MapObj(users.getJSONObject("videoQuality")));
 			if(users.has("expireTimestamp"))
 				expireTimestamp = String.valueOf(users.getLong("expireTimestamp"));
 			
 		}catch(JSONException e){
 			throw new DocApplicationException("Json格式轉換失敗",1);
+		} catch (DecoderException e) {
+			throw new DocApplicationException("Decoder失敗",13);
 		}
 		
 		return this.doInsertDb();
@@ -92,7 +101,7 @@ public class DynamoUsers {
 				if(source!=null) 
 					putItem.withString("source", source);
 				if(videoQuality!=null)
-					putItem.withString("videoQuality", videoQuality);
+					putItem.withMap("videoQuality", videoQuality);
 				if(expireTimestamp!=null)
 					putItem.withString("expireTimestamp", expireTimestamp);
 				

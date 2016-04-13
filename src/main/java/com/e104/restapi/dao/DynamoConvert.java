@@ -12,8 +12,14 @@ import java.util.Map;
 
 
 
+
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+
 
 
 
@@ -40,7 +46,7 @@ public class DynamoConvert {
 	tools tools = new tools();
 	public void insertDynamo(JSONObject convert) throws DocApplicationException{
 		try{
-		fileid = convert.getString("fileid").getBytes();
+		fileid =  Hex.decodeHex(convert.getString("fileid").toCharArray());
 		contenttype = convert.getInt("contenttype");
 		apnum = convert.getString("apnum");
 		filepath = convert.getString("filepath");
@@ -58,9 +64,11 @@ public class DynamoConvert {
 		
 		status = tools.json2Map(convert.getJSONObject("status"));
 		if (convert.has("videoQuality"))
-			videoQuality = new HashMap<String,String>(tools.json2Map(convert.getJSONObject("videoQuality")));
+			videoQuality = new HashMap<String,String>(tools.json2MapObj(convert.getJSONObject("videoQuality")));
 		}catch(JSONException e){
 			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
+		} catch (DecoderException e) {
+			throw new DocApplicationException("Decoder失敗",1);
 		}
 		
 		this.doInsertDb();
