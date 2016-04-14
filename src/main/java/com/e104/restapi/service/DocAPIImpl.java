@@ -1474,7 +1474,7 @@ public class DocAPIImpl implements IDocAPI{
 		public String signature(Signature jsonData) throws DocApplicationException {
 			getHeaderValue();
 			JSONObject returnObject = new JSONObject();
-			JSONObject paramObj;
+
 			try {
 			/*
 			//paramVal is {"apnum":"10400","pid":"10400","content-type","image/jpeg","filename":"123","extra":"1234"}
@@ -1547,9 +1547,9 @@ public class DocAPIImpl implements IDocAPI{
 				        "\"conditions\": [" +
 				          "{\"bucket\": \""+Config.bucketName+"\"}," +
 				          "[\"starts-with\", \"$key\", \""+filepath_forS3+"\"]," +
-				          "{\"acl\": \"public-read\"}," +
+				          "{\"acl\": \"authenticated-read\"}," +
 				          //"{\"Content-Disposition\": \""+ fileName +"\"},"+
-				          "{\"acl\": \"public-read\"},"+
+				          //"{\"acl\": \"public-read\"},"+
 				          "[\"starts-with\", \"$Content-Type\", \""+ putObj.getString("contenttype") +"\"]" +
 				        "]" +
 				      "}";
