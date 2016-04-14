@@ -8,7 +8,7 @@ import javax.ws.rs.ext.Provider;
 import org.json.JSONObject;
 
 @Provider
-public class DocErrorHandler implements ExceptionMapper<DocApplicationException> 
+public class DocErrorhandling implements ExceptionMapper<DocApplicationException> 
 {
     @Override
     public Response toResponse(DocApplicationException exception) 

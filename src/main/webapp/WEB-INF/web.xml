@@ -33,7 +33,7 @@
 		<init-param>
 			<param-name>jaxrs.providers</param-name>
 			<param-value>
-			    com.e104.Errorhandling.DocErrorHandler,
+			    com.e104.Errorhandling.DocErrorhandling,
 			    com.e104.Errorhandling.ServerExceptionMapper,
 			    com.e104.Errorhandling.ClientExceptionMapper,
 			    org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
