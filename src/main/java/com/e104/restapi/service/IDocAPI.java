@@ -130,10 +130,14 @@ public interface IDocAPI {
 	   public String discardFile(@ApiParam(value = "fileid", required = true) @PathParam("fileId") String fileId) throws DocApplicationException;
 	   
 	   @GET
-	   @Path("/generateFileId/(Param)")
-	   @ApiOperation(value = "generate fileId", httpMethod = "GET")
-	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String generateFileId(@ApiParam(value = "Param is decode,need extraNo & contenttype & isP", required = true) @PathParam("Param") String Param);
+	   @Path("/generateFileId")
+	   @ApiOperation(value = "delete files by fileId", httpMethod = "GET")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "fileid", value = "String test", required = true, dataType = "string", paramType = "string") 
+	   public String generateFileId(@ApiParam(value = "extraNo", required = true)@QueryParam("extraNo") String extraNo,
+			   @ApiParam(value = "contenttypeP", required = true)@QueryParam("contenttype") String contenttype,
+			   @ApiParam(value = "isP", required = true)@QueryParam("isP") String isP
+			   ) throws DocApplicationException;
 	   
 	   @GET
 	   @Path("/getCheck")
