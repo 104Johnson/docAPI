@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 
 import redis.clients.jedis.Jedis;
 
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 
 import net.spy.memcached.MemcachedClient;
 

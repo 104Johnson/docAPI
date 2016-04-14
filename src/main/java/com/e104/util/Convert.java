@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import scala.reflect.internal.Trees.This;
 
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 
 /**
  * this class wrap 'convert' collection to provide some helper functions.

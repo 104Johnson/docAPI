@@ -8,7 +8,7 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 
 public class S3Service {
 

@@ -4,11 +4,12 @@ import java.util.List;
 
 
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.util.DynamoService;
 
 public class DynamoDocConvert {

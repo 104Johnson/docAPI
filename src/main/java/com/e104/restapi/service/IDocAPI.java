@@ -12,7 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.model.GetFileUrl;
 import com.e104.restapi.model.Signature;
 import com.e104.restapi.model.UpdateFile;

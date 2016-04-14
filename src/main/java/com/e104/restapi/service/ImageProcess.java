@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.model.GetFileArr;
 import com.e104.restapi.model.GetFileUrl;
 import com.e104.util.Config;

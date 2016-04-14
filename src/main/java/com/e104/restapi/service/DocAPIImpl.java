@@ -35,7 +35,7 @@ import redis.clients.jedis.Jedis;
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.dao.DynamoConvert;
 import com.e104.restapi.dao.DynamoDeleteFileLog;
 import com.e104.restapi.dao.DynamoUsers;
@@ -370,7 +370,7 @@ public class DocAPIImpl implements IDocAPI{
 			//String isP = paramObj.optString("isP").trim();
 
 			if(!tools.isEmpty(extraNo)){
-				//FileManageDispatch fm = new FileManageDispatch();
+				//FileManageDispatch fmupdate = new FileManageDispatch();
 				DynamoService dynamoService = new DynamoService();
 				JSONObject uploadConfig = new JSONObject(
 						dynamoService.getUploadByExtraNo("uploadConfig", extraNo));
