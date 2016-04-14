@@ -25,12 +25,16 @@ public class S3Service {
 	public int deleteFolder(String bucketName, String folderName) throws DocApplicationException {
 		AmazonS3 client = s3Client();
 		List<S3ObjectSummary> fileList=null;
+		String keyRoot = folderName.split("/")[0];
 		try{
 			fileList = client.listObjects(bucketName, folderName).getObjectSummaries();
 			for (S3ObjectSummary file : fileList) {
 				client.deleteObject(bucketName, file.getKey());
 			}
-			client.deleteObject(bucketName, folderName);
+			
+			System.out.println(keyRoot);
+			client.deleteObject(bucketName, keyRoot);
+			
 		}catch(Exception e){
 			throw new DocApplicationException("S3 delete fail", 15);
 		}
