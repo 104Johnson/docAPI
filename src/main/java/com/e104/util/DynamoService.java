@@ -12,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
@@ -24,14 +24,14 @@ import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.util.BinaryUtils;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.ErrorHandling.DocApplicationException;
 
 public class DynamoService {
 	
 	public static DynamoDB  dynamoinit(){
 
 		DynamoDB dynamoDB = new DynamoDB((AmazonDynamoDB) new AmazonDynamoDBClient(
-				new ProfileCredentialsProvider()).withRegion(Regions.AP_NORTHEAST_1)
+				new DefaultAWSCredentialsProviderChain()).withRegion(Regions.AP_NORTHEAST_1)
 			    .withEndpoint("dynamodb.ap-northeast-1.amazonaws.com"));   
 		
 		return dynamoDB;
@@ -81,7 +81,7 @@ public class DynamoService {
 			    UpdateItemSpec updateItemSpec = new UpdateItemSpec()
 	            .withPrimaryKey("fileid", fileId)
 	            .withUpdateExpression("set #key = :value")
-	            .withConditionExpression("#p = :val2")
+	            .withConditionExpression("attribute_exists(fileid)")
 	            .withNameMap(new NameMap()
 	                .with("#key", key))
 	            .withValueMap(new ValueMap()
