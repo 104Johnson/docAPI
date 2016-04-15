@@ -4,7 +4,7 @@ import java.util.List;
 
 import scala.reflect.internal.Trees.This;
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -13,8 +13,7 @@ import com.e104.errorhandling.DocApplicationException;
 public class S3Service {
 
 	public AmazonS3 s3Client(){
-		
-		return new AmazonS3Client(new ProfileCredentialsProvider());
+		return new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
 	}
 	
 	/**
