@@ -1,22 +1,46 @@
 version: 0.0
 os: linux
 files:
-  - source: /docAPI.war
-    destination: /opt/tomcat/johnson/webapps/
+  - source: Content
+    destination: /opt/tomcat/default/webapps
+#permissions:
+#  - object: /opt/tomcat/default/webapps/ROOT
+#    pattern: "*"
+#    owner: nobody
+#    group: nobody
+#    mode: 755
+#    type:
+#      - directory
+#  - object: /opt/tomcat/default/webapps/ROOT
+#    pattern: "*"
+#    owner: nobody
+#    group: nobody
+#    mode: 644
+#    type:
+#      - file
 hooks:
-  BeforeInstall:
-    - location: Scripts/copyWarToTomcat.sh
-      timeout: 10
+  ApplicationStop:
+    - location: Scripts/EC2_Enter_Standby.sh
+      timeout: 60
       runas: root
-  AfterInstall:
-    - location: Scripts/RunResourceTests.sh
-      timeout: 10
+  BeforeInstall:
+    - location: Scripts/install_apache22_tomcat7_jdk7.sh
+      timeout: 60
+      runas: root
+    - location: Scripts/StopApacheTomcat.sh
+      timeout: 60
+      runas: root
+    - location: Scripts/EarseOldDeploy.sh
+      timeout: 60
       runas: root
   ApplicationStart:
-    - location: Scripts/RunFunctionalTests.sh
-      timeout: 10
+    - location: Scripts/StartApacheTomcat.sh
+      timeout: 300
       runas: root
   ValidateService:
-    - location: Scripts/MonitorService.sh
-      timeout: 10
+    - location: Scripts/VerifyTomcat.sh
+      timeout: 300
+      runas: root
+    - location: Scripts/EC2_Exit_Standby.sh
+      timeout: 60
       runas: root
