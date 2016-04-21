@@ -40,8 +40,8 @@ public abstract class Config {
 	
 	public static final String buildDate = "2015-10-13 12:00";
 	public static String VERSION = "";
-	public static String bucketName = "e104-doc-api-file-store";
-	public static String convertBucketName = "e104-doc-api-file-store-re"; 
+	public static String bucketName = "docapi-dev-origin";
+	public static String convertBucketName = "docapi-dev-variant"; 
 //	public static final String VERSION = "{\"time\":\"2015-05-22 16:10 \",\"Desc\":\"for all environment audio return http OR rtmpt \",\"MQ_WSDL\":\""+MQ_WSDL+"\",\"MC_ENDPOINT\":\""+MC_ENDPOINT+"\",\"MONGO_ENDPOINT\":\""+MONGO_ENDPOINT+"\",\"VIDEO_ENDPOINT\":\""+VIDEO_ENDPOINT+"\",\"FILE_ACCESS_URL\":\""+FILE_ACCESS_URL+"\",\"DFRTMPT_URL\":\""+DFRTMPT_URL+"\"}";
 
 	

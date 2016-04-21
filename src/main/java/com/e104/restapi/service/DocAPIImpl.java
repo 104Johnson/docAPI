@@ -1474,7 +1474,7 @@ public class DocAPIImpl implements IDocAPI{
 		public String signature(Signature jsonData) throws DocApplicationException {
 			getHeaderValue();
 			JSONObject returnObject = new JSONObject();
-			JSONObject paramObj;
+
 			try {
 			/*
 			//paramVal is {"apnum":"10400","pid":"10400","content-type","image/jpeg","filename":"123","extra":"1234"}
@@ -1547,9 +1547,9 @@ public class DocAPIImpl implements IDocAPI{
 				        "\"conditions\": [" +
 				          "{\"bucket\": \""+Config.bucketName+"\"}," +
 				          "[\"starts-with\", \"$key\", \""+filepath_forS3+"\"]," +
-				          "{\"acl\": \"public-read\"}," +
+				          "{\"acl\": \"authenticated-read\"}," +
 				          //"{\"Content-Disposition\": \""+ fileName +"\"},"+
-				          "{\"acl\": \"public-read\"},"+
+				          //"{\"acl\": \"public-read\"},"+
 				          "[\"starts-with\", \"$Content-Type\", \""+ putObj.getString("contenttype") +"\"]" +
 				        "]" +
 				      "}";
@@ -1917,18 +1917,158 @@ public class DocAPIImpl implements IDocAPI{
 			// TODO Auto-generated method stub
 			return null;
 		}
-		/**
-		 * Get Request Header Value
-		 * */
-		private void getHeaderValue(){
-			if (context!=null){
-				trackId = context.getHttpServletRequest().getHeader("X-Custom-Tracer-Id");
-				caller = context.getHttpServletRequest().getHeader("X-Custom-Caller");
-				if (caller == null) {  
-					caller = context.getHttpServletRequest().getRemoteAddr();  
-			   }
-			}
-		}
 		
+/*
+		@Override
+		public String wbGetStatus(Signature processId)
+			
+			//取得process 
+			String wbStr = this.getProcessById(processId);
+			
+			//System.out.println("WBFileConvert getStatus("+processId+")=>"+process);
+			logger.info("Enter WBFileConvert getStatus, " + DateUtil.getDateTimeForLog() + "processId==>"+ processId);
+			
+			JSONObject wb;
+			JSONObject wb_tags;
+			JSONObject wb_status = null;		
+			try {
+				wb = new JSONObject(wbStr);
+				//process 目前狀態
+				wb_status = new JSONObject(wb.get("status").toString());
+				if(wb_status.getString("status").equalsIgnoreCase("Fail")){
+					//失敗
+					wb_status.put("status", "Fail");
+					wb_status.put("progress", "0");
+				}else if(wb_status.getString("status").equalsIgnoreCase("Success") && wb_status.getString("stage").equalsIgnoreCase("FileConvert")){
+					//成功
+					wb_status.put("status", "Success");
+					wb_status.put("progress", "100");
+				}else{
+					//需判斷狀態   {"tags":{"tag2":"a6b847b6d0ce4d798e460d8e36a3a239","tag1":"13423b84c9714de59c8e7ec487dabfa1"}}
+					wb_tags = new JSONObject(wb.get("tags").toString());
+					Iterator keyIter = wb_tags.keys();
+					JSONArray status_arr = new JSONArray();//processId 下所有檔案狀態JSONArray				
+					// loop tags 取得process下所有檔案資訊
+					while (keyIter.hasNext()) {
+						String key = (String) keyIter.next();//tag名稱
+						String fileId = wb_tags.getString(key);//對應的fileId
+						//取得檔案detail 
+						JSONObject f_detail = new JSONObject(fm.getFileDetail(fileId,"").toString());
+						f_detail.put("fileTag",key);
+						status_arr.put(f_detail);
+					}
+					//status_arr=> [{"filepath":"/104plus/WB123/5/a6b847b6d0ce4d798e460d8e36a3a239.flv","desc":"","status":"Success","convert":"Success","pid":"WB123","fileid":"a6b847b6d0ce4d798e460d8e36a3a239","fileTag":"tag2","contenttype":5,"insertdate":"2013-03-04 11:34:59","apnum":"0","imgstatus":"Success","title":"","_id":{"$oid":"51341663e4b07d3aa3425566"},"txid":"7a6955c5-1d0d-4dac-b008-cd156ffcc3e0","filename":"CLASS_QA_GT2013022312100380135_video_right_2SR.flv"},{"filepath":"/104plus/WB123/5/13423b84c9714de59c8e7ec487dabfa1.flv","desc":"","status":"Success","convert":"Success","pid":"WB123","fileid":"13423b84c9714de59c8e7ec487dabfa1","fileTag":"tag1","contenttype":5,"insertdate":"2013-03-04 11:34:59","apnum":"0","imgstatus":"Success","title":"","_id":{"$oid":"51341663e4b07d3aa3425565"},"txid":"1b494107-77a1-4f2d-a362-39305d5bc577","filename":"CLASS_QA_GT2013022312100380135_video_left_2SR.flv"}]
+
+					
+					//stage uplade->ImageProcess
+					// 計算進度
+					double s_num = 0;	// video snap (imgstatus) success number
+					double p_num = 0;	// video snap (imgstatus) pending number
+										// error will return.
+					
+					if(wb_status.getString("stage").equalsIgnoreCase("Upload")){
+						//rtn.put("stage", status_arr);
+						//計算success & pend				
+						for (int i = 0; i < status_arr.length(); i++) {
+							if(status_arr.getJSONObject(i).getString("imgstatus").equalsIgnoreCase("Fail")){
+								//fail
+								wb_status.put("stage", "ImageProcess");
+								wb_status.put("status", "Fail");
+								wb_status.put("progress", "0");
+								break;
+							}else if(status_arr.getJSONObject(i).getString("imgstatus").equalsIgnoreCase("Success")){
+								s_num=s_num+1;
+							}else{
+								p_num=p_num+1;
+							}
+						}
+						
+						if(wb_status.getString("status").equalsIgnoreCase("Fail")){//失敗
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Fail");
+							wb_status.put("progress", "0");
+						}else if(p_num >0 ){//處理中
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Inprocess");
+							double progress = s_num/(p_num+s_num)*50;
+							wb_status.put("progress", progress);						
+						}else{//成功
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Success");
+						}			
+					}	
+
+					
+					//stage ImageProcess->FileConvert
+					// 計算進度
+					
+					if((wb_status.has("progress") && !wb_status.get("progress").toString().equals("100")) || 
+						(wb_status.getString("stage").equalsIgnoreCase("ImageProcess") && wb_status.getString("status").equalsIgnoreCase("Success"))){
+						s_num = 0;
+						p_num = 0;
+						//rtn.put("stage", status_arr);
+						//計算success & pend				
+						for (int i = 0; i < status_arr.length(); i++) {
+							if(status_arr.getJSONObject(i).getString("convert").equalsIgnoreCase("Fail")){
+								//fail
+								wb_status.put("stage", "FileConvert");
+								wb_status.put("status", "Fail");
+								wb_status.put("progress", "0");
+								break;
+							}else if(status_arr.getJSONObject(i).getString("convert").equalsIgnoreCase("Success")){
+								s_num=s_num+1;
+							}else{
+								p_num=p_num+1;
+							}
+							
+						}
+						if(wb_status.getString("status").equalsIgnoreCase("Fail")){//失敗
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Fail");
+							wb_status.put("progress", "0");						
+						}else if(p_num >0){//轉檔中
+							//目前預設白板不用轉檔
+							//status_obj.put("stage", "FileConvert");
+							//status_obj.put("status", "Success");						
+							
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Inprocess");
+							double progress = 50+((s_num/(p_num+s_num))*50);
+							
+							wb_status.put("progress", progress);						
+							//status_obj.put("progress", 100);
+						}else{//成功
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Success");
+							wb_status.put("progress", 100);
+						}								
+					}
+				}
+				//更新DB狀態
+				this.updateProcessStatus(processId, wb_status.toString());			
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		    	java.io.StringWriter sw = new java.io.StringWriter();
+				java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+				e.printStackTrace(pw);
+				logger.error(sw.getBuffer().toString());
+			}
+			logger.info("Exit WBFileConvert getStatus, " + DateUtil.getDateTimeForLog() + "status_obj==>"+ wb_status.toString());
+			return wb_status.toString();
+		}
+		*/
+/**
+ * Get Request Header Value
+ * */
+private void getHeaderValue(){
+	if (context!=null){
+		trackId = context.getHttpServletRequest().getHeader("X-Custom-Tracer-Id");
+		caller = context.getHttpServletRequest().getHeader("X-Custom-Caller");
+		if (caller == null) {  
+			caller = context.getHttpServletRequest().getRemoteAddr();  
+	   }
+	}
+}
 		
 }

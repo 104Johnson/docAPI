@@ -290,6 +290,15 @@ public interface IDocAPI {
 	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
 	   public String signature(@ApiParam(value = "JSONObject",required=true)  Signature jsonData) throws DocApplicationException; 
 	   
+	   /*
+	   @GET
+	   @Path("/wbGetStatus")
+	   @ApiOperation(value = "Get Process Status", notes = "wbGetStatus", httpMethod = "GET")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "ProcessId", value = "String", required = true, dataType = "String", paramType = "String") 	  
+	   public String wbGetStatus(@ApiParam(value = "ProcessId",required=true)  Signature processId) throws DocApplicationException; 
+	   */
+	   
 	 //doing##########################################################
 	   
 	   @POST
