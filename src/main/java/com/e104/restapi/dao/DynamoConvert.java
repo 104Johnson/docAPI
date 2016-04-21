@@ -3,15 +3,8 @@ package com.e104.restapi.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-
-
-
-
-
 
 
 
@@ -19,14 +12,6 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-
-
-
-
-
-
-
 
 
 import com.amazonaws.services.dynamodbv2.document.Item;

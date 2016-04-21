@@ -593,13 +593,16 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 						}
 						
 						// fileCheckExist = filepath + "-" + "1" + ".jpg";
-						for(int x = 1; x <= obj.getInt("pagesize"); x++){
+						//原檔取出需要改回來
+						/*for(int x = 1; x <= obj.getInt("pagesize"); x++){
 							urlArr.add(this.generateFileURLforPublic(filepath +"-"+x+".jpg",Long.parseLong(timestamp), isP, protocol));						
-						}	
-						
+						}	*/
+						urlArr.add(this.generateFileURLforPublic(filepath +".doc",Long.parseLong(timestamp), isP, protocol));	
 					}else{
 						//System.out.println("WARN FileManager getFileUrl() " + DateUtil.getDateTimeForLog() + " ,  missing PageSize key!! , contenttype=>2 , queryFileId=>" + msql + " , mongoResult=>" + mongoResult);
-						Logger.warn("WARN FileManager getFileUrl() " + DateUtil.getDateTimeForLog() + " ,  missing PageSize key!! , contenttype=>2 , user object => " + obj);
+						//原檔取出需要改回來
+						urlArr.add(this.generateFileURLforPublic(filepath +".doc",Long.parseLong(timestamp), isP, protocol));	
+						//Logger.warn("WARN FileManager getFileUrl() " + DateUtil.getDateTimeForLog() + " ,  missing PageSize key!! , contenttype=>2 , user object => " + obj);
 					}
 				break;
 				case ContentType.Audio:
@@ -622,8 +625,9 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 						case HTTP:
 						case HTTPS:
 						case COMMON:
-							filetype = ".m4a";
-							filepath = filepath +"_v1_128k";
+							//要改回m4a和Filepath
+							filetype = ".mp3";
+							//filepath = filepath +"_v1_128k";
 							//2014-01-09 fix for md5 encrypt											
 							// fileCheckExist = filepath + "_v1_128k.m4a";
 				    		urlArr.add(this.generateFileURLforPublic(filepath + filetype,Long.parseLong(timestamp), 1, protocol));
@@ -940,9 +944,28 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 
 	    return dateFormatter.format(returnTime);
 	}
-	
-	
-	
+	/*
+	public String getProcessById(String processId) {// 取得processId內容
+		Logger.info("Enter WBFileConvert getProcessById, " + DateUtil.getDateTimeForLog() + ", processId==>"+ processId);
+		MongoDBDispatch db_object = new MongoDBDispatch("wb");
+		JSONObject res = null;
+		JSONObject query = new JSONObject();
+		try {
+			query.put("processId", processId);
+			res = (new JSONArray(db_object.fileSelect(query))).getJSONObject(0);
+		} catch (JSONException e) {
+			// 回傳失敗結果
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+	    	java.io.StringWriter sw = new java.io.StringWriter();
+			java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+			e.printStackTrace(pw);
+			logger.error("Exception WBFileConvert getProcessById, Exception==>"+ e.toString());
+		}
+		logger.info("Exit WBFileConvert getProcessById, " + DateUtil.getDateTimeForLog() + ", res.toString()==>"+ res.toString());
+		return res.toString();
+	}
+	*/
 	  public static void main(String[] args) {
 	        System.out.println(new tools().getCurrentUTCTimestamp((byte)1)); // Display the string.
 	        System.out.println(new tools().getCurrentUTCTimestamp((byte)0)); // Display the string.
