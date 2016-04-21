@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.util.BinaryUtils;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.util.DynamoService;
 import com.e104.util.TraceLog;
 import com.e104.util.tools;

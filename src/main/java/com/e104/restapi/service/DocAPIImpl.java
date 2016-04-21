@@ -35,7 +35,7 @@ import redis.clients.jedis.Jedis;
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.dao.DynamoConvert;
 import com.e104.restapi.dao.DynamoDeleteFileLog;
 import com.e104.restapi.dao.DynamoUsers;
@@ -359,47 +359,51 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String generateFileId(String jsonObj) {
-		Logger.info("Enter generateFileId => " + jsonObj);
+	public String generateFileId(String extraNo,String contenttype,String isP ) throws DocApplicationException {
+		//Logger.info("Enter generateFileId => " + jsonObj);
 		
 		try{
-			JSONObject paramObj = new JSONObject(jsonObj);
+			//JSONObject paramObj = new JSONObject(jsonObj);
 			
-			String _extraNo = paramObj.optString("extraNo").trim();
-			String _contenttype = paramObj.optString("contenttype").trim();
-			String _isP = paramObj.optString("isP").trim();
-			/*
-			if(!tools.isEmpty(_extraNo)){
-				//FileManageDispatch fm = new FileManageDispatch();
+			//String extraNo = paramObj.optString("extraNo").trim();
+			//String contenttype = paramObj.optString("contenttype").trim();
+			//String isP = paramObj.optString("isP").trim();
+
+			if(!tools.isEmpty(extraNo)){
+				//FileManageDispatch fmupdate = new FileManageDispatch();
 				DynamoService dynamoService = new DynamoService();
-				dynamoService.getUploadByExtraNo("uploadConfig", _extraNo)
-				JSONObject uploadConfig = fm.findConfig(_extraNo);
+				JSONObject uploadConfig = new JSONObject(
+						dynamoService.getUploadByExtraNo("uploadConfig", extraNo));
 				
-				if(uploadConfig != null){
-					_contenttype = uploadConfig.getString("contenttype");
+				//JSONObject uploadConfig = fm.findConfig(_extraNo);
+				
+				if(uploadConfig.length()!=0){
+					contenttype = uploadConfig.getString("contenttype");
 					JSONObject itemExtra = uploadConfig.getJSONObject("extra");
-					_isP = itemExtra.has("isP") ? itemExtra.get("isP").toString() : "0";
+					isP = itemExtra.has("isP") ? itemExtra.get("isP").toString() : "0";
 				}
-				else
-					return new JSONObject().put("status", "fail").put("msg", "no config for extraNo [" + _extraNo + "]").toString();
+				else{
+					throw new DocApplicationException("no config for extraNo [" + extraNo + "]",13 );
+				}
+					
 			}
-			else if(isEmpty(_contenttype)){
-				return new JSONObject().put("status", "fail").put("msg", "must provide extraNo or contenttype.").toString();
-			}*/
+			else if(tools.isEmpty(contenttype)){
+				throw new DocApplicationException("must provide extraNo or contenttype.",13 );
+			}
 			
-			if(tools.isEmpty(_isP))
-				_isP = "0";
+			if(tools.isEmpty(isP))
+				isP = "0";
 			
-			if(!_isP.matches("[01]") || !_contenttype.matches("[1-5]"))
-				return new JSONObject().put("status", "fail").put("msg", "invalid contenttype or isP format.").toString();
+			if(!isP.matches("[01]") || !contenttype.matches("[1-5]"))
+				throw new DocApplicationException("invalid contenttype or isP format.",13 );
 			
-			String fileId = UUID.randomUUID().toString().replaceAll("-", "") + _isP + _contenttype;
+			String fileId = UUID.randomUUID().toString().replaceAll("-", "") + isP + contenttype;
 
 			return new JSONObject().put("status", "success").put("fileId", fileId).toString(); 
 		}
 		catch(JSONException e){
 			Logger.error("generateFileId Error", e);
-			return new JSONObject().put("status", "fail").put("msg", "JSON format error").toString();
+			throw new DocApplicationException("JSON format error",16 );
 		}
 	}
 

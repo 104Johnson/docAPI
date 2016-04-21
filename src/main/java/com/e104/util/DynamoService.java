@@ -24,7 +24,7 @@ import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.util.BinaryUtils;
-import com.e104.ErrorHandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 
 public class DynamoService {
 	
@@ -115,6 +115,7 @@ public class DynamoService {
 			    UpdateItemSpec updateItemSpec = new UpdateItemSpec()
 	            .withPrimaryKey("fileid", Hex.decodeHex(fileId.toCharArray()))
 	            .withUpdateExpression("set #key = :value")
+	            .withConditionExpression("attribute_exists(fileid)")
 	            .withNameMap(new NameMap()
                 	.with("#key", entry.getKey().toString()))
                 	.withValueMap(new ValueMap()

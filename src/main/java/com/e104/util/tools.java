@@ -29,12 +29,14 @@ import net.spy.memcached.MemcachedClient;
 
 
 
+
 //import org.apache.catalina.util.Base64;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 
 
 
@@ -69,8 +71,8 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.enums.Protocol;
-import com.e104.errorhandling.DocApplicationException;
 import com.e104.util.ContentType;
 
 public class tools {

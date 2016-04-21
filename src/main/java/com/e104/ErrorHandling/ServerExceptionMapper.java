@@ -1,4 +1,4 @@
-package com.e104.errorhandling;
+package com.e104.Errorhandling;
 
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;

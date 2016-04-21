@@ -1,4 +1,4 @@
-package com.e104.errorhandling;
+package com.e104.Errorhandling;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -8,7 +8,7 @@ import javax.ws.rs.ext.Provider;
 import org.json.JSONObject;
 
 @Provider
-public class DocErrorHandler implements ExceptionMapper<DocApplicationException> 
+public class DocErrorhandling implements ExceptionMapper<DocApplicationException> 
 {
     @Override
     public Response toResponse(DocApplicationException exception) 
