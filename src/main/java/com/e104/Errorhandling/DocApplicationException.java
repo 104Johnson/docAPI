@@ -1,7 +1,5 @@
 package com.e104.Errorhandling;
 
-
-
 public class DocApplicationException  extends Exception 
 {
 	private int code;

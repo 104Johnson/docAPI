@@ -33,7 +33,7 @@ import org.json.JSONObject;
 
 import redis.clients.jedis.Jedis;
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.dao.DynamoConvert;
@@ -1568,7 +1568,7 @@ public class DocAPIImpl implements IDocAPI{
 			
 				Mac hmac = Mac.getInstance("HmacSHA1");
 				
-					hmac.init(new SecretKeySpec(new ProfileCredentialsProvider().getCredentials().getAWSSecretKey().getBytes("UTF-8"), "HmacSHA1"));
+					hmac.init(new SecretKeySpec(new DefaultAWSCredentialsProviderChain().getCredentials().getAWSSecretKey().getBytes("UTF-8"), "HmacSHA1"));
 				
 				//Map<String, String> cachedUrlMap = new HashMap<String, String>();	
 				

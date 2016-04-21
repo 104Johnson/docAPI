@@ -3,10 +3,8 @@ package com.e104.util;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.MessageDigest;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,9 +12,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import javax.ws.rs.core.HttpHeaders;
 
 import net.spy.memcached.MemcachedClient;
+
 
 
 
@@ -51,8 +49,8 @@ import org.json.JSONObject;
 
 
 
-import scala.reflect.internal.Trees.New;
-import scala.reflect.internal.Trees.This;
+
+
 
 import com.e104.util.Config;
 
@@ -67,7 +65,7 @@ import com.e104.util.Config;
 
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
@@ -284,7 +282,7 @@ public class tools {
 		// logger.info("INFO generateFileURLforPublic(), Encrypt url==>"+url+" timestamp:"+ timestamp+ " isP:"+ isP);
 		try {
 			//TODO Johnson Timestamp可能不用改用S3的Signed URL
-			AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider()); 
+			AmazonS3 s3client = new AmazonS3Client(new DefaultAWSCredentialsProviderChain()); 
 		       
 			java.util.Date expiration = new java.util.Date();
 			//long msec = expiration.getTime();
