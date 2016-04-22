@@ -1,6 +1,9 @@
 package com.e104.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,19 +15,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.document.AttributeUpdate;
+import com.amazonaws.services.dynamodbv2.document.DeleteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+
 import com.amazonaws.util.BinaryUtils;
 import com.e104.Errorhandling.DocApplicationException;
 
@@ -125,6 +132,70 @@ public class DynamoService {
 	            .withReturnValues(ReturnValue.UPDATED_NEW);
 			userData = dynamoDB.getTable(tableName).updateItem(updateItemSpec).getUpdateItemResult().toString();
 			}
+		}catch(AmazonServiceException | DecoderException e){
+			e.printStackTrace();
+			throw new DocApplicationException("FileId is not exist",12);
+		} 
+		return userData;
+	}
+	
+	/**
+	 * @method updateItem
+	 * @purpose 更新DB資料
+	 * @param tableName
+	 * @param fileId
+	 * @param key(Jsonformat Key)
+	 * @param value(Jsonformat Value)
+	 * @return userData
+	 * @throws DocApplicationException
+	 */
+	public String deleteItem(String tableName,String fileId) throws DocApplicationException{
+		DynamoDB dynamoDB = dynamoinit();
+		String userData=null;
+		try{
+			Map<String, Object> map = new HashMap<String,Object>();
+			map.put(":val", "1");
+			
+			 DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
+	            .withPrimaryKey(new PrimaryKey("fileId", Hex.decodeHex(fileId.toCharArray())))
+	            .withConditionExpression("attribute_exists(fileId)")
+			 	.withReturnValues(ReturnValue.ALL_OLD);
+			 DeleteItemOutcome outcome = dynamoDB.getTable(tableName).deleteItem(deleteItemSpec);
+			 System.out.println(outcome.getItem().toJSONPretty());
+		}catch(AmazonServiceException | DecoderException e){
+			e.printStackTrace();
+			throw new DocApplicationException("FileId is not exist",12);
+		} 
+		return userData;
+	}
+	
+	/**
+	 * @method updateItem
+	 * @purpose 更新DB資料
+	 * @param tableName
+	 * @param fileId
+	 * @param key(Jsonformat Key)
+	 * @param value(Jsonformat Value)
+	 * @return userData
+	 * @throws DocApplicationException
+	 */
+	public String deleteAttribute(String tableName,String fileId,String key) throws DocApplicationException{
+		DynamoDB dynamoDB = dynamoinit();
+		String userData=null;
+		try{
+			List<AttributeUpdate> deleteAttribute = new ArrayList<AttributeUpdate>();
+			deleteAttribute.add(new AttributeUpdate(key).delete());
+			
+			UpdateItemSpec updateItemSpec = new UpdateItemSpec()
+			.withPrimaryKey(new PrimaryKey("fileId", Hex.decodeHex(fileId.toCharArray())))
+			//.withConditionExpression("attribute_exists(fileId)")
+			.withAttributeUpdate(deleteAttribute)
+			.withReturnValues(ReturnValue.UPDATED_OLD);
+			
+		
+			
+			UpdateItemOutcome outcome = dynamoDB.getTable(tableName).updateItem(updateItemSpec);
+			 System.out.println(outcome.getItem().toJSONPretty());
 		}catch(AmazonServiceException | DecoderException e){
 			e.printStackTrace();
 			throw new DocApplicationException("FileId is not exist",12);

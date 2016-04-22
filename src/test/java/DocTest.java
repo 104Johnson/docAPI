@@ -58,6 +58,7 @@ public class DocTest {
 		decryptParam();
 		encryptParam();
 		addKey();
+		removeKey();
 		
 	}
 	private void healthCheck(){
@@ -69,18 +70,18 @@ public class DocTest {
 		JSONObject responseObject;
 		try {
 			//Case 1
-			response = docAPIImpl.addKey("a44a223f57ae4154a00d83d6569f21b511", "disabled", "1");
+			response = docAPIImpl.addKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled", "1");
 			responseObject = new JSONObject(response);
 			assertEquals("Success",responseObject.getString("status"));
 		
 			//Case 2 FileId is not exist
-			response = docAPIImpl.addKey("1", "disabled", "1");
+			response = docAPIImpl.addKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled", "1");
 			
 			//Case 3 Field value is null
-			response = docAPIImpl.addKey("a44a223f57ae4154a00d83d6569f21b511", "", "1");
+			response = docAPIImpl.addKey("6dde8a907a3549c1afca3003b9e61a1111", "", "1");
 			
 			//Case 4Field value is null
-			response = docAPIImpl.addKey("a44a223f57ae4154a00d83d6569f21b511", "disabled", "");
+			response = docAPIImpl.addKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled", "");
 			
 		}
 		  catch (DocApplicationException e) {
@@ -91,6 +92,23 @@ public class DocTest {
 			fail("[Error]"+e.getMessage());
 		} 
 		
+	}
+	private void removeKey(){
+		JSONObject responseObject;
+		try {
+			//Case 1
+			response = docAPIImpl.removeKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled");
+			responseObject = new JSONObject(response);
+			
+			
+		}
+		  catch (DocApplicationException e) {
+			if (e.getMessage()!="FileId is not exist" && e.getMessage()!="Field value is null")
+				fail("[Error]"+e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
 	}
 	
 	private void encryptParam(){
