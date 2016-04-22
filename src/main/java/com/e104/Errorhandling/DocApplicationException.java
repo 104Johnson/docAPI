@@ -1,6 +1,4 @@
-package com.e104.errorhandling;
-
-
+package com.e104.Errorhandling;
 
 public class DocApplicationException  extends Exception 
 {

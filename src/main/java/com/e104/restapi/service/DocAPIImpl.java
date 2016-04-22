@@ -33,9 +33,9 @@ import org.json.JSONObject;
 
 import redis.clients.jedis.Jedis;
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 import com.e104.restapi.dao.DynamoConvert;
 import com.e104.restapi.dao.DynamoDeleteFileLog;
 import com.e104.restapi.dao.DynamoUsers;
@@ -83,7 +83,7 @@ public class DocAPIImpl implements IDocAPI{
 			DynamoService dynamoService = new DynamoService();
 			Map<String, String> updateMap = new HashMap<String,String>();
 			updateMap.put(key, value);
-			dynamoService.updateItem("users", fileid, updateMap);
+			dynamoService.updateItem(Config.document, fileid, updateMap);
 				
 			rtn.put("txid", tools.generateTxid());
 			rtn.put("status", "Success");
@@ -127,8 +127,10 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String decryptParam(String param) {
+	public String decryptParam(String param) throws DocApplicationException {
 		param = tools.decode(param);
+		if (param==null || "".equals(param))
+			throw new DocApplicationException("Data Decrypt Fail", 16);
     	return param;
 	}
 
@@ -170,7 +172,7 @@ public class DocAPIImpl implements IDocAPI{
 				//FileManageDispatch fmd = new FileManageDispatch();
 				traceLog.writeKinesisLog(trackId, caller, src, "deleteFile::Start", rtn);	
 				
-				JSONObject filedetail = new JSONObject(dynamoService.getItem("users", fileId));
+				JSONObject filedetail = new JSONObject(dynamoService.getItem(Config.document, fileId));
 				JSONArray extensions = new JSONArray("[\"JPG\",\"jpg\",\"GIF\",\"gif\",\"PNG\",\"png\",\"PPT\",\"ppt\",\"MP4\",\"mp4\",\"FLV\",\"flv\",\"MP3\",\"mp3\",\"wmv\",\"doc\",\"DOC\",\"xls\",\"XLS\",\"avi\",\"AVI\",\"bmp\",\"BMP\",\"pdf\",\"PDF\"]");
 				String filepath = filedetail.getString("filepath");
 				String path = "";
@@ -359,47 +361,51 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String generateFileId(String jsonObj) {
-		Logger.info("Enter generateFileId => " + jsonObj);
+	public String generateFileId(String extraNo,String contenttype,String isP ) throws DocApplicationException {
+		//Logger.info("Enter generateFileId => " + jsonObj);
 		
 		try{
-			JSONObject paramObj = new JSONObject(jsonObj);
+			//JSONObject paramObj = new JSONObject(jsonObj);
 			
-			String _extraNo = paramObj.optString("extraNo").trim();
-			String _contenttype = paramObj.optString("contenttype").trim();
-			String _isP = paramObj.optString("isP").trim();
-			/*
-			if(!tools.isEmpty(_extraNo)){
-				//FileManageDispatch fm = new FileManageDispatch();
+			//String extraNo = paramObj.optString("extraNo").trim();
+			//String contenttype = paramObj.optString("contenttype").trim();
+			//String isP = paramObj.optString("isP").trim();
+
+			if(!tools.isEmpty(extraNo)){
+				//FileManageDispatch fmupdate = new FileManageDispatch();
 				DynamoService dynamoService = new DynamoService();
-				dynamoService.getUploadByExtraNo("uploadConfig", _extraNo)
-				JSONObject uploadConfig = fm.findConfig(_extraNo);
+				JSONObject uploadConfig = new JSONObject(
+						dynamoService.getUploadByExtraNo(Config.uploadConfig, extraNo));
 				
-				if(uploadConfig != null){
-					_contenttype = uploadConfig.getString("contenttype");
+				//JSONObject uploadConfig = fm.findConfig(_extraNo);
+				
+				if(uploadConfig.length()!=0){
+					contenttype = uploadConfig.getString("contenttype");
 					JSONObject itemExtra = uploadConfig.getJSONObject("extra");
-					_isP = itemExtra.has("isP") ? itemExtra.get("isP").toString() : "0";
+					isP = itemExtra.has("isP") ? itemExtra.get("isP").toString() : "0";
 				}
-				else
-					return new JSONObject().put("status", "fail").put("msg", "no config for extraNo [" + _extraNo + "]").toString();
+				else{
+					throw new DocApplicationException("no config for extraNo [" + extraNo + "]",13 );
+				}
+					
 			}
-			else if(isEmpty(_contenttype)){
-				return new JSONObject().put("status", "fail").put("msg", "must provide extraNo or contenttype.").toString();
-			}*/
+			else if(tools.isEmpty(contenttype)){
+				throw new DocApplicationException("must provide extraNo or contenttype.",13 );
+			}
 			
-			if(tools.isEmpty(_isP))
-				_isP = "0";
+			if(tools.isEmpty(isP))
+				isP = "0";
 			
-			if(!_isP.matches("[01]") || !_contenttype.matches("[1-5]"))
-				return new JSONObject().put("status", "fail").put("msg", "invalid contenttype or isP format.").toString();
+			if(!isP.matches("[01]") || !contenttype.matches("[1-5]"))
+				throw new DocApplicationException("invalid contenttype or isP format.",13 );
 			
-			String fileId = UUID.randomUUID().toString().replaceAll("-", "") + _isP + _contenttype;
+			String fileId = UUID.randomUUID().toString().replaceAll("-", "") + isP + contenttype;
 
 			return new JSONObject().put("status", "success").put("fileId", fileId).toString(); 
 		}
 		catch(JSONException e){
 			Logger.error("generateFileId Error", e);
-			return new JSONObject().put("status", "fail").put("msg", "JSON format error").toString();
+			throw new DocApplicationException("JSON format error",16 );
 		}
 	}
 
@@ -438,7 +444,7 @@ public class DocAPIImpl implements IDocAPI{
 				
 			traceLog.writeKinesisLog(trackId, caller, src, "getFileDetail::Start", rtn);
 			DynamoService dynamoService = new DynamoService();
-			rtn = new JSONObject(dynamoService.getItem("users", fileId));
+			rtn = new JSONObject(dynamoService.getItem(Config.document, fileId));
 			
 			/*
 			rtn = (new JSONArray(dynamoService.getItem("users", fileId))).getJSONObject(0);
@@ -556,7 +562,7 @@ public class DocAPIImpl implements IDocAPI{
 			
 			// check fileId is not in use.
 			DynamoService dynamoService = new DynamoService();
-			JSONObject user = new JSONObject( dynamoService.getItem("users", fileid));
+			JSONObject user = new JSONObject( dynamoService.getItem(Config.document, fileid));
 			
 			if(user.length()<=0){
 				Logger.info("fileid not in use, check passed.");
@@ -1002,7 +1008,7 @@ public class DocAPIImpl implements IDocAPI{
 			update.put("description", jsonObjData.getDescription());
 			
 			//execute update
-			new DynamoService().updateItem("users", jsonObjData.getFileId(), update);
+			new DynamoService().updateItem(Config.document, jsonObjData.getFileId(), update);
 			
 			traceLog.writeKinesisLog(trackId, caller, src, "updateFile::End", rtn);
 			rtn.put("txid", tools.generateTxid());
@@ -1042,7 +1048,7 @@ public class DocAPIImpl implements IDocAPI{
 				DynamoService dynamoService = new DynamoService();
 				
 				
-				JSONObject filedetail = new JSONObject(dynamoService.getItem("users", fileId));
+				JSONObject filedetail = new JSONObject(dynamoService.getItem(Config.document, fileId));
 				int contenttype = 0;
 				if(filedetail.has("contenttype")){
 					contenttype = filedetail.getInt("contenttype");
@@ -1213,7 +1219,7 @@ public class DocAPIImpl implements IDocAPI{
 				JSONArray userData = jsonObj.getJSONArray("getFileArr");
 				
 				
-				JSONArray users = new JSONArray(dynamoService.getItems("users",userData));
+				JSONArray users = new JSONArray(dynamoService.getItems(Config.document,userData));
 				JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
 					
 				
@@ -1470,7 +1476,7 @@ public class DocAPIImpl implements IDocAPI{
 		public String signature(Signature jsonData) throws DocApplicationException {
 			getHeaderValue();
 			JSONObject returnObject = new JSONObject();
-			JSONObject paramObj;
+
 			try {
 			/*
 			//paramVal is {"apnum":"10400","pid":"10400","content-type","image/jpeg","filename":"123","extra":"1234"}
@@ -1543,9 +1549,9 @@ public class DocAPIImpl implements IDocAPI{
 				        "\"conditions\": [" +
 				          "{\"bucket\": \""+Config.bucketName+"\"}," +
 				          "[\"starts-with\", \"$key\", \""+filepath_forS3+"\"]," +
-				          "{\"acl\": \"public-read\"}," +
+				          "{\"acl\": \"authenticated-read\"}," +
 				          //"{\"Content-Disposition\": \""+ fileName +"\"},"+
-				          "{\"acl\": \"public-read\"},"+
+				          //"{\"acl\": \"public-read\"},"+
 				          "[\"starts-with\", \"$Content-Type\", \""+ putObj.getString("contenttype") +"\"]" +
 				        "]" +
 				      "}";
@@ -1564,7 +1570,7 @@ public class DocAPIImpl implements IDocAPI{
 			
 				Mac hmac = Mac.getInstance("HmacSHA1");
 				
-					hmac.init(new SecretKeySpec(new ProfileCredentialsProvider().getCredentials().getAWSSecretKey().getBytes("UTF-8"), "HmacSHA1"));
+					hmac.init(new SecretKeySpec(new DefaultAWSCredentialsProviderChain().getCredentials().getAWSSecretKey().getBytes("UTF-8"), "HmacSHA1"));
 				
 				//Map<String, String> cachedUrlMap = new HashMap<String, String>();	
 				
@@ -1637,7 +1643,7 @@ public class DocAPIImpl implements IDocAPI{
 				traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::Start",extra);
 				
 				
-				JSONArray users = new JSONArray(dynamoService.getItems("users",userData));
+				JSONArray users = new JSONArray(dynamoService.getItems(Config.document,userData));
 				JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
 					
 				
@@ -1913,18 +1919,158 @@ public class DocAPIImpl implements IDocAPI{
 			// TODO Auto-generated method stub
 			return null;
 		}
-		/**
-		 * Get Request Header Value
-		 * */
-		private void getHeaderValue(){
-			if (context!=null){
-				trackId = context.getHttpServletRequest().getHeader("X-Custom-Tracer-Id");
-				caller = context.getHttpServletRequest().getHeader("X-Custom-Caller");
-				if (caller == null) {  
-					caller = context.getHttpServletRequest().getRemoteAddr();  
-			   }
-			}
-		}
 		
+/*
+		@Override
+		public String wbGetStatus(Signature processId)
+			
+			//取得process 
+			String wbStr = this.getProcessById(processId);
+			
+			//System.out.println("WBFileConvert getStatus("+processId+")=>"+process);
+			logger.info("Enter WBFileConvert getStatus, " + DateUtil.getDateTimeForLog() + "processId==>"+ processId);
+			
+			JSONObject wb;
+			JSONObject wb_tags;
+			JSONObject wb_status = null;		
+			try {
+				wb = new JSONObject(wbStr);
+				//process 目前狀態
+				wb_status = new JSONObject(wb.get("status").toString());
+				if(wb_status.getString("status").equalsIgnoreCase("Fail")){
+					//失敗
+					wb_status.put("status", "Fail");
+					wb_status.put("progress", "0");
+				}else if(wb_status.getString("status").equalsIgnoreCase("Success") && wb_status.getString("stage").equalsIgnoreCase("FileConvert")){
+					//成功
+					wb_status.put("status", "Success");
+					wb_status.put("progress", "100");
+				}else{
+					//需判斷狀態   {"tags":{"tag2":"a6b847b6d0ce4d798e460d8e36a3a239","tag1":"13423b84c9714de59c8e7ec487dabfa1"}}
+					wb_tags = new JSONObject(wb.get("tags").toString());
+					Iterator keyIter = wb_tags.keys();
+					JSONArray status_arr = new JSONArray();//processId 下所有檔案狀態JSONArray				
+					// loop tags 取得process下所有檔案資訊
+					while (keyIter.hasNext()) {
+						String key = (String) keyIter.next();//tag名稱
+						String fileId = wb_tags.getString(key);//對應的fileId
+						//取得檔案detail 
+						JSONObject f_detail = new JSONObject(fm.getFileDetail(fileId,"").toString());
+						f_detail.put("fileTag",key);
+						status_arr.put(f_detail);
+					}
+					//status_arr=> [{"filepath":"/104plus/WB123/5/a6b847b6d0ce4d798e460d8e36a3a239.flv","desc":"","status":"Success","convert":"Success","pid":"WB123","fileid":"a6b847b6d0ce4d798e460d8e36a3a239","fileTag":"tag2","contenttype":5,"insertdate":"2013-03-04 11:34:59","apnum":"0","imgstatus":"Success","title":"","_id":{"$oid":"51341663e4b07d3aa3425566"},"txid":"7a6955c5-1d0d-4dac-b008-cd156ffcc3e0","filename":"CLASS_QA_GT2013022312100380135_video_right_2SR.flv"},{"filepath":"/104plus/WB123/5/13423b84c9714de59c8e7ec487dabfa1.flv","desc":"","status":"Success","convert":"Success","pid":"WB123","fileid":"13423b84c9714de59c8e7ec487dabfa1","fileTag":"tag1","contenttype":5,"insertdate":"2013-03-04 11:34:59","apnum":"0","imgstatus":"Success","title":"","_id":{"$oid":"51341663e4b07d3aa3425565"},"txid":"1b494107-77a1-4f2d-a362-39305d5bc577","filename":"CLASS_QA_GT2013022312100380135_video_left_2SR.flv"}]
+
+					
+					//stage uplade->ImageProcess
+					// 計算進度
+					double s_num = 0;	// video snap (imgstatus) success number
+					double p_num = 0;	// video snap (imgstatus) pending number
+										// error will return.
+					
+					if(wb_status.getString("stage").equalsIgnoreCase("Upload")){
+						//rtn.put("stage", status_arr);
+						//計算success & pend				
+						for (int i = 0; i < status_arr.length(); i++) {
+							if(status_arr.getJSONObject(i).getString("imgstatus").equalsIgnoreCase("Fail")){
+								//fail
+								wb_status.put("stage", "ImageProcess");
+								wb_status.put("status", "Fail");
+								wb_status.put("progress", "0");
+								break;
+							}else if(status_arr.getJSONObject(i).getString("imgstatus").equalsIgnoreCase("Success")){
+								s_num=s_num+1;
+							}else{
+								p_num=p_num+1;
+							}
+						}
+						
+						if(wb_status.getString("status").equalsIgnoreCase("Fail")){//失敗
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Fail");
+							wb_status.put("progress", "0");
+						}else if(p_num >0 ){//處理中
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Inprocess");
+							double progress = s_num/(p_num+s_num)*50;
+							wb_status.put("progress", progress);						
+						}else{//成功
+							wb_status.put("stage", "ImageProcess");
+							wb_status.put("status", "Success");
+						}			
+					}	
+
+					
+					//stage ImageProcess->FileConvert
+					// 計算進度
+					
+					if((wb_status.has("progress") && !wb_status.get("progress").toString().equals("100")) || 
+						(wb_status.getString("stage").equalsIgnoreCase("ImageProcess") && wb_status.getString("status").equalsIgnoreCase("Success"))){
+						s_num = 0;
+						p_num = 0;
+						//rtn.put("stage", status_arr);
+						//計算success & pend				
+						for (int i = 0; i < status_arr.length(); i++) {
+							if(status_arr.getJSONObject(i).getString("convert").equalsIgnoreCase("Fail")){
+								//fail
+								wb_status.put("stage", "FileConvert");
+								wb_status.put("status", "Fail");
+								wb_status.put("progress", "0");
+								break;
+							}else if(status_arr.getJSONObject(i).getString("convert").equalsIgnoreCase("Success")){
+								s_num=s_num+1;
+							}else{
+								p_num=p_num+1;
+							}
+							
+						}
+						if(wb_status.getString("status").equalsIgnoreCase("Fail")){//失敗
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Fail");
+							wb_status.put("progress", "0");						
+						}else if(p_num >0){//轉檔中
+							//目前預設白板不用轉檔
+							//status_obj.put("stage", "FileConvert");
+							//status_obj.put("status", "Success");						
+							
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Inprocess");
+							double progress = 50+((s_num/(p_num+s_num))*50);
+							
+							wb_status.put("progress", progress);						
+							//status_obj.put("progress", 100);
+						}else{//成功
+							wb_status.put("stage", "FileConvert");
+							wb_status.put("status", "Success");
+							wb_status.put("progress", 100);
+						}								
+					}
+				}
+				//更新DB狀態
+				this.updateProcessStatus(processId, wb_status.toString());			
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		    	java.io.StringWriter sw = new java.io.StringWriter();
+				java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+				e.printStackTrace(pw);
+				logger.error(sw.getBuffer().toString());
+			}
+			logger.info("Exit WBFileConvert getStatus, " + DateUtil.getDateTimeForLog() + "status_obj==>"+ wb_status.toString());
+			return wb_status.toString();
+		}
+		*/
+/**
+ * Get Request Header Value
+ * */
+private void getHeaderValue(){
+	if (context!=null){
+		trackId = context.getHttpServletRequest().getHeader("X-Custom-Tracer-Id");
+		caller = context.getHttpServletRequest().getHeader("X-Custom-Caller");
+		if (caller == null) {  
+			caller = context.getHttpServletRequest().getRemoteAddr();  
+	   }
+	}
+}
 		
 }

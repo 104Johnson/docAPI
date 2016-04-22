@@ -3,13 +3,8 @@ package com.e104.restapi.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-
-
-
 
 
 
@@ -21,14 +16,9 @@ import org.json.JSONObject;
 
 
 
-
-
-
-
-
-
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
+import com.e104.util.Config;
 import com.e104.util.DynamoService;
 import com.e104.util.tools;
 
@@ -91,7 +81,7 @@ public class DynamoConvert {
 			putItem.withMap("videoQuality", videoQuality);
 			
 		
-		dynamoService.putItem("convert", putItem);
+		dynamoService.putItem(Config.convert, putItem);
 		}catch(Exception e){
 			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
 		}

@@ -1,4 +1,4 @@
-package com.e104.errorhandling;
+package com.e104.Errorhandling;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -8,7 +8,7 @@ import javax.ws.rs.ext.Provider;
 import org.json.JSONObject;
 
 @Provider
-public class DocErrorHandler implements ExceptionMapper<DocApplicationException> 
+public class DocErrorhandling implements ExceptionMapper<DocApplicationException> 
 {
     @Override
     public Response toResponse(DocApplicationException exception) 
@@ -25,12 +25,13 @@ public class DocErrorHandler implements ExceptionMapper<DocApplicationException>
     		switch (((DocApplicationException)exception).getCode()) {
 			
     		case 1:
-    			return Response.status(Status.BAD_REQUEST).entity(returnError).build();
-			case 2:
-				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
-			case 3:
-				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
-			case 12:
+    		case 2:
+    		case 3:
+    		case 12:
+    		case 13:
+    		case 14:
+    		case 15:
+    		case 16:
 				return Response.status(Status.BAD_REQUEST).entity(returnError).build();
 			default:
 				return Response.serverError().build();

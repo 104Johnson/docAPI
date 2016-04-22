@@ -6,12 +6,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.kinesisfirehose.AmazonKinesisFirehoseClient;
 import com.amazonaws.services.kinesisfirehose.model.PutRecordRequest;
 import com.amazonaws.services.kinesisfirehose.model.Record;
-import com.e104.errorhandling.DocApplicationException;
+import com.e104.Errorhandling.DocApplicationException;
 
 
 public class TraceLog {
@@ -60,7 +60,7 @@ public class TraceLog {
 
 			
 			AWSCredentials credentials = null;
-			credentials = new ProfileCredentialsProvider().getCredentials();
+			credentials = new DefaultAWSCredentialsProviderChain().getCredentials();
 			// Firehose client
 	        firehoseClient = new AmazonKinesisFirehoseClient(credentials);
 	        firehoseClient.setRegion(RegionUtils.getRegion("us-west-2"));
