@@ -78,7 +78,7 @@ public class DynamoConvert {
 			putItem.withMap("videoQuality", videoQuality);
 			
 		
-		dynamoService.putItem("convert", putItem);
+		dynamoService.putItem(Config.convert, putItem);
 		}catch(Exception e){
 			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
 		}
