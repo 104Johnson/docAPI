@@ -50,7 +50,8 @@ public class DocTest {
 	            .setConnectTimeout(15000)  
 	            .setConnectionRequestTimeout(15000)
 	            .build(); 
-	 private String baseURL = "http://docapi-1217519329.ap-northeast-1.elb.amazonaws.com/docapi/rest/services/";
+	 //private String baseURL = "http://docapi-1217519329.ap-northeast-1.elb.amazonaws.com/docapi/rest/services/";
+	 private String baseURL = "http://localhost:8080/docAPI/rest/services/";
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		
@@ -72,28 +73,34 @@ public class DocTest {
 	public void test() {
 		//測試
 		decryptParam();
+		//encryptParam();有加TimeStamp無法測試
 	}
 	private void encryptParam(){
 		Map<String,String> target = new HashMap<String,String>();
-		JSONObject response;
+		JSONObject parmes = new JSONObject(); 
 		try {
 			//case 1
-			target.put(baseURL,"eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYxMzEyODcxNzI5LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0=");
 			
+			parmes.put("parme", "{\"apnum\":\"10400\","
+					+ "\"title\":\"測試\","
+					+ "\"extra\":{\"extraNo\":\"09b87a95-6ef4-4d23-aca6-660521a3968e\","
+					+ "\"convert\":\"false\"},"
+					+ "\"description\":\"測試\","
+					+ "\"actionTimestamp\":1460430186925,"
+					+ "\"isP\":1,"
+					+ "\"pid\":\"10400\","
+					+ "\"contenttype\":\"image/jpeg\","
+					+ "\"contentDisposition\":\"Penguins.jpg\"}");
+			parmes.put("targe", "eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYxMzEyODcxNzI5LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0=");
+			target.put(baseURL+"encryptParam/",parmes.toString());
 			
 			//case 2
-			target.put(baseURL+"decryptParam/1", "");
-			Iterator iter = target.entrySet().iterator(); 
-			while (iter.hasNext()) { 
-			    Map.Entry entry = (Map.Entry) iter.next(); 
-			    Object key = entry.getKey(); 
-			    Object val = entry.getValue(); 
-				response = new JSONObject(sendHttp(key.toString(),"","POST"));
-				
-			    //assertEquals(val,response);
-			    //if (response.has("error"))
-			    	//fail("[Error]"+response.toString());
-			} 
+			parmes.put("parme","{}");
+			parmes.put("targe","eyJhY3Rpb25UaW1lc3RhbXAiOjE0NjEzMTc5NTU2MDV9");
+			target.put(baseURL+"encryptParam/", parmes.toString());
+
+			checkIteratorItem(target,"POST");
+			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -104,11 +111,10 @@ public class DocTest {
 	
 	private void decryptParam(){
 		Map<String,String> target = new HashMap<String,String>();
-		
-		
+		JSONObject parmes = new JSONObject(); 
+		try {
 			//case 1
-			target.put(baseURL+"decryptParam/"
-					+ "eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYwNDMwMTg2OTI1LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0", "{\"apnum\":\"10400\","
+			parmes.put("targe", "{\"apnum\":\"10400\","
 					+ "\"title\":\"測試\","
 					+ "\"extra\":{\"extraNo\":\"09b87a95-6ef4-4d23-aca6-660521a3968e\","
 					+ "\"convert\":\"false\"},"
@@ -118,9 +124,17 @@ public class DocTest {
 					+ "\"pid\":\"10400\","
 					+ "\"contenttype\":\"image/jpeg\","
 					+ "\"contentDisposition\":\"Penguins.jpg\"}");
+			target.put(baseURL+"decryptParam/"
+					+ "eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYwNDMwMTg2OTI1LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0",parmes.toString() );
 			//case 2
-			target.put(baseURL+"decryptParam/1", "");
+			parmes.put("targe","{\"error\":{\"message\":\"Data Decrypt Fail\",\"trace_id\":\"\",\"code\":16}}");
+			target.put(baseURL+"decryptParam/1", parmes.toString());
 			checkIteratorItem(target,"GET");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		}
 			/*
 			Iterator iter = target.entrySet().iterator(); 
 			while (iter.hasNext()) { 
@@ -140,21 +154,23 @@ public class DocTest {
 	
 	private void  checkIteratorItem(Map parme,String method){
 		Iterator iter = parme.entrySet().iterator(); 
-		JSONObject response=null;
-		JSONObject valObject;
+		String response=null;
+		JSONObject valObject=null;
 		try{
 			while (iter.hasNext()) { 
 			    Map.Entry entry = (Map.Entry) iter.next(); 
 			    Object key = entry.getKey(); 
-			    valObject = new JSONObject(entry.getValue()); 
+			    Object val = entry.getValue(); 
+			    if (val!=null && !"".equals(val))
+			    	valObject = new JSONObject(val.toString()); 
 			    
 			    switch (method) {
 				case "POST":
-					response = new JSONObject(sendHttp(key.toString(),valObject.getString("parme"),"POST"));
+					response = sendHttp(key.toString(),valObject.getString("parme"),"POST");
 					break;
 	
 				case "GET":
-					response = new JSONObject(sendHttp(key.toString(),"","GET"));
+					response = sendHttp(key.toString(),"","GET");
 					break;
 				case "PUT":
 					break;
@@ -162,15 +178,18 @@ public class DocTest {
 					break;
 					
 				}
+				System.out.println(valObject.getString("targe"));
+				System.out.println(response);
 				
 				
-			    //assertEquals(val,response);
-			    if (response.has("error"))
-			    	fail("[Error]"+response.toString());
+			    assertEquals(valObject.getString("targe"),response);
+			    //if (response.has("error"))
+			    	//fail("[Error]"+response.toString());
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
 		}
 		
 	}
