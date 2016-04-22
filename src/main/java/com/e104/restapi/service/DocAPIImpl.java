@@ -80,6 +80,8 @@ public class DocAPIImpl implements IDocAPI{
 		src = "docapi::core::addKey::";		
 		try{
 			traceLog.writeKinesisLog(trackId, caller, src, "addKey::Start", rtn);
+			if ("".equals(fileid) || "".equals(key) || "".equals(value))
+				throw new DocApplicationException("Field value is null", 3);
 			DynamoService dynamoService = new DynamoService();
 			Map<String, String> updateMap = new HashMap<String,String>();
 			updateMap.put(key, value);
@@ -88,10 +90,12 @@ public class DocAPIImpl implements IDocAPI{
 			rtn.put("txid", tools.generateTxid());
 			rtn.put("status", "Success");
 			traceLog.writeKinesisLog(trackId, caller, src, "addKey::End", rtn);
-		} catch (Exception e) {
+		} catch (DocApplicationException e) {
+			throw e;
+			//logger.error("addKey("+fileid+","+key+","+value+") Exception", e);
+		} catch(Exception e){
 			e.printStackTrace();
 			throw new DocApplicationException(e, 99);
-			//logger.error("addKey("+fileid+","+key+","+value+") Exception", e);
 		}
 		return rtn.toString();
 	}
@@ -941,9 +945,19 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String removeKey(String Param) {
-		// TODO Auto-generated method stub
-		return null;
+	public String removeKey(String fileId, String key)throws DocApplicationException {
+		JSONObject rtn = new JSONObject();
+		try{
+		DynamoService dynamoService = new DynamoService();
+		dynamoService.deleteAttribute(Config.document, fileId, key);
+		
+		rtn.put("txid", tools.generateTxid());
+		rtn.put("status", "Success");
+		} catch (Exception e) {
+			throw new DocApplicationException("", 1);
+			//System.out.println("com.e104.DocumentManagement removeKey("+fileid+","+key+") Exception : "+e);
+		}
+		return rtn.toString();
 	}
 	
 	/**
@@ -1915,10 +1929,17 @@ public class DocAPIImpl implements IDocAPI{
 		}
 
 		@Override
+		public String healthCheck() {
+			return "ok";
+		}
+		
+		@Override
 		public String test(Signature jsonData) throws DocApplicationException {
 			// TODO Auto-generated method stub
 			return null;
 		}
+		
+		
 		
 /*
 		@Override
@@ -2072,5 +2093,7 @@ private void getHeaderValue(){
 	   }
 	}
 }
+
+
 		
 }
