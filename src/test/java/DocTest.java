@@ -50,8 +50,8 @@ public class DocTest {
 	            .setConnectTimeout(15000)  
 	            .setConnectionRequestTimeout(15000)
 	            .build(); 
-	 //private String baseURL = "http://docapi-1217519329.ap-northeast-1.elb.amazonaws.com/docapi/rest/services/";
-	 private String baseURL = "http://localhost:8080/docAPI/rest/services/";
+	 private String baseURL = "http://docapi-1217519329.ap-northeast-1.elb.amazonaws.com/docapi/rest/services/";
+	 //private String baseURL = "http://localhost:8080/docAPI/rest/services/";
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		
