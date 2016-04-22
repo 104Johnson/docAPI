@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 
 
+
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,10 +38,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.amazonaws.services.support.model.CaseCreationLimitExceededException;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
-import com.google.common.collect.Multiset.Entry;
-import com.sun.xml.bind.v2.schemagen.xmlschema.List;
+
 
 
 public class DocTest {
@@ -72,11 +73,39 @@ public class DocTest {
 		//測試
 		decryptParam();
 	}
-	
-	private void decryptParam(){
+	private void encryptParam(){
 		Map<String,String> target = new HashMap<String,String>();
 		JSONObject response;
 		try {
+			//case 1
+			target.put(baseURL,"eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYxMzEyODcxNzI5LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0=");
+			
+			
+			//case 2
+			target.put(baseURL+"decryptParam/1", "");
+			Iterator iter = target.entrySet().iterator(); 
+			while (iter.hasNext()) { 
+			    Map.Entry entry = (Map.Entry) iter.next(); 
+			    Object key = entry.getKey(); 
+			    Object val = entry.getValue(); 
+				response = new JSONObject(sendHttp(key.toString(),"","POST"));
+				
+			    //assertEquals(val,response);
+			    //if (response.has("error"))
+			    	//fail("[Error]"+response.toString());
+			} 
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		}
+	}
+	
+	
+	private void decryptParam(){
+		Map<String,String> target = new HashMap<String,String>();
+		
+		
 			//case 1
 			target.put(baseURL+"decryptParam/"
 					+ "eyJhcG51bSI6IjEwNDAwIiwidGl0bGUiOiLmuKzoqaYiLCJleHRyYSI6eyJleHRyYU5vIjoiMDliODdhOTUtNmVmNC00ZDIzLWFjYTYtNjYwNTIxYTM5NjhlIiwiY29udmVydCI6ImZhbHNlIn0sImRlc2NyaXB0aW9uIjoi5ris6KmmIiwiYWN0aW9uVGltZXN0YW1wIjoxNDYwNDMwMTg2OTI1LCJpc1AiOjEsInBpZCI6IjEwNDAwIiwiY29udGVudHR5cGUiOiJpbWFnZS9qcGVnIiwiY29udGVudERpc3Bvc2l0aW9uIjoiUGVuZ3VpbnMuanBnIn0", "{\"apnum\":\"10400\","
@@ -91,24 +120,60 @@ public class DocTest {
 					+ "\"contentDisposition\":\"Penguins.jpg\"}");
 			//case 2
 			target.put(baseURL+"decryptParam/1", "");
+			checkIteratorItem(target,"GET");
+			/*
 			Iterator iter = target.entrySet().iterator(); 
 			while (iter.hasNext()) { 
 			    Map.Entry entry = (Map.Entry) iter.next(); 
 			    Object key = entry.getKey(); 
 			    Object val = entry.getValue(); 
+			    
 				response = new JSONObject(sendHttp(key.toString(),"","GET"));
 				
 			    //assertEquals(val,response);
 			    if (response.has("error"))
-			    	fail();
-			} 
+			    	fail("[Error]"+response.toString());
+			} */
+		
+		//assertEquals(targetDecryptParam,response);
+	}
+	
+	private void  checkIteratorItem(Map parme,String method){
+		Iterator iter = parme.entrySet().iterator(); 
+		JSONObject response=null;
+		JSONObject valObject;
+		try{
+			while (iter.hasNext()) { 
+			    Map.Entry entry = (Map.Entry) iter.next(); 
+			    Object key = entry.getKey(); 
+			    valObject = new JSONObject(entry.getValue()); 
+			    
+			    switch (method) {
+				case "POST":
+					response = new JSONObject(sendHttp(key.toString(),valObject.getString("parme"),"POST"));
+					break;
+	
+				case "GET":
+					response = new JSONObject(sendHttp(key.toString(),"","GET"));
+					break;
+				case "PUT":
+					break;
+				case "DELETE":
+					break;
+					
+				}
+				
+				
+			    //assertEquals(val,response);
+			    if (response.has("error"))
+			    	fail("[Error]"+response.toString());
+			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//assertEquals(targetDecryptParam,response);
+		
 	}
-	
 	
 	
 	 /** 
