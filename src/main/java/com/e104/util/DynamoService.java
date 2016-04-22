@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
@@ -42,7 +44,7 @@ public class DynamoService {
 		
 		Item userData=null;
 		String rtn="";
-	        PrimaryKey pKey = new PrimaryKey("fileid",
+	        PrimaryKey pKey = new PrimaryKey("fileId",
 	        		Hex.decodeHex(fileId.toCharArray()));
 	        userData = dynamoDB.getTable(tableName).getItem(pKey);
 	        if(userData!=null && !"".equals(userData))
@@ -79,9 +81,9 @@ public class DynamoService {
 		try{
 			
 			    UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-	            .withPrimaryKey("fileid", fileId)
+	            .withPrimaryKey("fileId", fileId)
 	            .withUpdateExpression("set #key = :value")
-	            .withConditionExpression("attribute_exists(fileid)")
+	            .withConditionExpression("attribute_exists(fileId)")
 	            .withNameMap(new NameMap()
 	                .with("#key", key))
 	            .withValueMap(new ValueMap()
@@ -111,11 +113,11 @@ public class DynamoService {
 		
 			Iterator<Entry<String, String>> iter = value.entrySet().iterator(); 
 			while (iter.hasNext()) { 
-				Map.Entry<String,String> entry = (Map.Entry<String,String>) iter.next(); 
+				Map.Entry<String,String> entry = (Map.Entry<String,String>) iter.next();
 			    UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-	            .withPrimaryKey("fileid", Hex.decodeHex(fileId.toCharArray()))
+	            .withPrimaryKey("fileId", Hex.decodeHex(fileId.toCharArray()))
 	            .withUpdateExpression("set #key = :value")
-	            .withConditionExpression("attribute_exists(fileid)")
+	            .withConditionExpression("attribute_exists(fileId)")
 	            .withNameMap(new NameMap()
                 	.with("#key", entry.getKey().toString()))
                 	.withValueMap(new ValueMap()
@@ -123,12 +125,10 @@ public class DynamoService {
 	            .withReturnValues(ReturnValue.UPDATED_NEW);
 			userData = dynamoDB.getTable(tableName).updateItem(updateItemSpec).getUpdateItemResult().toString();
 			}
-		}catch(NullPointerException e){
+		}catch(AmazonServiceException | DecoderException e){
 			e.printStackTrace();
-			throw new DocApplicationException("NullPointerException",99);
-		} catch (DecoderException e) {
-			throw new DocApplicationException("Decoder失敗",1);
-		}
+			throw new DocApplicationException("FileId is not exist",12);
+		} 
 		return userData;
 	}
 	
