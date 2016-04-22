@@ -85,7 +85,7 @@ public class Convert {
 		//JSONObject user = db.findUser(this.getFileId());		
 		JSONObject user;
 		try {
-			user = new JSONObject(db.getItem(config.document, this.getFileId()));
+			user = new JSONObject(db.getItem(Config.document, this.getFileId()));
 		
 			if(new tools().isEmpty(user.toString())) {
 				// logger.error("fileid in users collection not found => " + fileId);
