@@ -96,6 +96,15 @@ public abstract class Config {
 	public static String QName_Media = "MediaConvert";			// this is video queue name
 	public static String QName_Audio = "AudioConvert";
 
+	
+	//DynamoDb TableName
+	public static String document = "docapi-dev-document";
+	public static String uploadConfig = "docapi-dev-uploadConfig";
+	public static String deleteFileLog = "docapi-dev-deleteFileLog";
+	public static String convert = "docapi-dev-convert";
+	public static String wb = "docapi-dev-wb";
+	
+	
 	static{
 
 		// switch to OL queue name if current running environment is OL (test by mongo api domain name).

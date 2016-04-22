@@ -83,7 +83,7 @@ public class DocAPIImpl implements IDocAPI{
 			DynamoService dynamoService = new DynamoService();
 			Map<String, String> updateMap = new HashMap<String,String>();
 			updateMap.put(key, value);
-			dynamoService.updateItem("users", fileid, updateMap);
+			dynamoService.updateItem(config.document, fileid, updateMap);
 				
 			rtn.put("txid", tools.generateTxid());
 			rtn.put("status", "Success");
@@ -170,7 +170,7 @@ public class DocAPIImpl implements IDocAPI{
 				//FileManageDispatch fmd = new FileManageDispatch();
 				traceLog.writeKinesisLog(trackId, caller, src, "deleteFile::Start", rtn);	
 				
-				JSONObject filedetail = new JSONObject(dynamoService.getItem("users", fileId));
+				JSONObject filedetail = new JSONObject(dynamoService.getItem(config.document, fileId));
 				JSONArray extensions = new JSONArray("[\"JPG\",\"jpg\",\"GIF\",\"gif\",\"PNG\",\"png\",\"PPT\",\"ppt\",\"MP4\",\"mp4\",\"FLV\",\"flv\",\"MP3\",\"mp3\",\"wmv\",\"doc\",\"DOC\",\"xls\",\"XLS\",\"avi\",\"AVI\",\"bmp\",\"BMP\",\"pdf\",\"PDF\"]");
 				String filepath = filedetail.getString("filepath");
 				String path = "";
@@ -442,7 +442,7 @@ public class DocAPIImpl implements IDocAPI{
 				
 			traceLog.writeKinesisLog(trackId, caller, src, "getFileDetail::Start", rtn);
 			DynamoService dynamoService = new DynamoService();
-			rtn = new JSONObject(dynamoService.getItem("users", fileId));
+			rtn = new JSONObject(dynamoService.getItem(config.document, fileId));
 			
 			/*
 			rtn = (new JSONArray(dynamoService.getItem("users", fileId))).getJSONObject(0);
@@ -560,7 +560,7 @@ public class DocAPIImpl implements IDocAPI{
 			
 			// check fileId is not in use.
 			DynamoService dynamoService = new DynamoService();
-			JSONObject user = new JSONObject( dynamoService.getItem("users", fileid));
+			JSONObject user = new JSONObject( dynamoService.getItem(config.document, fileid));
 			
 			if(user.length()<=0){
 				Logger.info("fileid not in use, check passed.");
@@ -1006,7 +1006,7 @@ public class DocAPIImpl implements IDocAPI{
 			update.put("description", jsonObjData.getDescription());
 			
 			//execute update
-			new DynamoService().updateItem("users", jsonObjData.getFileId(), update);
+			new DynamoService().updateItem(config.document, jsonObjData.getFileId(), update);
 			
 			traceLog.writeKinesisLog(trackId, caller, src, "updateFile::End", rtn);
 			rtn.put("txid", tools.generateTxid());
@@ -1046,7 +1046,7 @@ public class DocAPIImpl implements IDocAPI{
 				DynamoService dynamoService = new DynamoService();
 				
 				
-				JSONObject filedetail = new JSONObject(dynamoService.getItem("users", fileId));
+				JSONObject filedetail = new JSONObject(dynamoService.getItem(config.document, fileId));
 				int contenttype = 0;
 				if(filedetail.has("contenttype")){
 					contenttype = filedetail.getInt("contenttype");
@@ -1217,7 +1217,7 @@ public class DocAPIImpl implements IDocAPI{
 				JSONArray userData = jsonObj.getJSONArray("getFileArr");
 				
 				
-				JSONArray users = new JSONArray(dynamoService.getItems("users",userData));
+				JSONArray users = new JSONArray(dynamoService.getItems(config.document,userData));
 				JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
 					
 				
@@ -1641,7 +1641,7 @@ public class DocAPIImpl implements IDocAPI{
 				traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::Start",extra);
 				
 				
-				JSONArray users = new JSONArray(dynamoService.getItems("users",userData));
+				JSONArray users = new JSONArray(dynamoService.getItems(config.document,userData));
 				JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
 					
 				

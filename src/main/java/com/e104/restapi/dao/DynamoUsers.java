@@ -105,7 +105,7 @@ public class DynamoUsers {
 				if(expireTimestamp!=null)
 					putItem.withString("expireTimestamp", expireTimestamp);
 				
-				rtn =dynamoService.putItem("users", putItem);
+				rtn =dynamoService.putItem(config.document, putItem);
 
 		}catch(Exception e){
 			throw new DocApplicationException(e,12);
