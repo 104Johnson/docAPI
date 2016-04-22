@@ -59,10 +59,11 @@ public class TraceLog {
 			putRecordRequest.setRecord(record);
 
 			
-			AWSCredentials credentials = null;
-			credentials = new DefaultAWSCredentialsProviderChain().getCredentials();
+			//AWSCredentials credentials = null;
+			
+			//credentials = new DefaultAWSCredentialsProviderChain();
 			// Firehose client
-	        firehoseClient = new AmazonKinesisFirehoseClient(credentials);
+	        firehoseClient = new AmazonKinesisFirehoseClient();
 	        firehoseClient.setRegion(RegionUtils.getRegion("us-west-2"));
 	       
 	        // Put record into the DeliveryStream
