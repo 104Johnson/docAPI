@@ -290,6 +290,14 @@ public interface IDocAPI {
 	   @ApiImplicitParam(name = "body", value = "JSONObject", required = true, dataType = "string", paramType = "body") 	  
 	   public String signature(@ApiParam(value = "JSONObject",required=true)  Signature jsonData) throws DocApplicationException; 
 	   
+	   @GET
+	   @Path("/healthCheck")
+	   @ApiOperation(value = "healthCheck", notes = "healthCheck", httpMethod = "GET")
+	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
+	   @ApiImplicitParam(name = "param", value = "healthCheck", required = true, dataType = "string", paramType = "string") 	  
+	   public String healthCheck();
+	   
+	   
 	   /*
 	   @GET
 	   @Path("/wbGetStatus")
