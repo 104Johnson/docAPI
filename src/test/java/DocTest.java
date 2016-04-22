@@ -1,25 +1,8 @@
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import static org.junit.Assert.fail;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -32,15 +15,13 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.amazonaws.services.support.model.CaseCreationLimitExceededException;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
 
 
 
@@ -72,7 +53,7 @@ public class DocTest {
 	@Test
 	public void test() {
 		//測試
-		decryptParam();
+		//decryptParam();
 		//encryptParam();有加TimeStamp無法測試
 	}
 	private void encryptParam(){
