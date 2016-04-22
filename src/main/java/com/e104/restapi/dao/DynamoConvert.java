@@ -8,14 +8,17 @@ import java.util.Map;
 
 
 
+
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
+
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.e104.Errorhandling.DocApplicationException;
+import com.e104.util.Config;
 import com.e104.util.DynamoService;
 import com.e104.util.tools;
 
@@ -78,7 +81,7 @@ public class DynamoConvert {
 			putItem.withMap("videoQuality", videoQuality);
 			
 		
-		dynamoService.putItem("convert", putItem);
+		dynamoService.putItem(Config.convert, putItem);
 		}catch(Exception e){
 			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
 		}

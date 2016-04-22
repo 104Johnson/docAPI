@@ -33,7 +33,7 @@ public class Convert {
 			DynamoService db = new DynamoService();
 			//TODO Johnson 改成DynamoService 模式
 			//JSONObject data = db.findConvert(fileId);
-			JSONObject data = new JSONObject(db.getItem("convert", fileId));
+			JSONObject data = new JSONObject(db.getItem(Config.convert, fileId));
 			if(data != null)
 				return new Convert(data, db);
 		}
@@ -125,7 +125,7 @@ public class Convert {
 		
 		boolean data=false;
 		try {
-			data = "".equals(db.updateItem("convert", this.getFileId(), "status", new JSONObject(this.json)))? true: false;
+			data = "".equals(db.updateItem(Config.convert, this.getFileId(), "status", new JSONObject(this.json)))? true: false;
 		} catch (DocApplicationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

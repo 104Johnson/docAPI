@@ -373,7 +373,7 @@ public class DocAPIImpl implements IDocAPI{
 				//FileManageDispatch fmupdate = new FileManageDispatch();
 				DynamoService dynamoService = new DynamoService();
 				JSONObject uploadConfig = new JSONObject(
-						dynamoService.getUploadByExtraNo("uploadConfig", extraNo));
+						dynamoService.getUploadByExtraNo(Config.uploadConfig, extraNo));
 				
 				//JSONObject uploadConfig = fm.findConfig(_extraNo);
 				
