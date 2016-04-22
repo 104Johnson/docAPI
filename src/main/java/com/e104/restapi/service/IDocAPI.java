@@ -227,7 +227,8 @@ public interface IDocAPI {
 	   @Path("/removeKey")
 	   @ApiOperation(value = "remove user collection Key ", httpMethod = "DELETE")
 	   @ApiResponses(value = { @ApiResponse(code = 200, message = "http/1.1 200 OK{\"error\":\"\",\"data\":\"\",\"success\":\"true\"}")})
-	   public String removeKey(@ApiParam(value = "Param is decode,need fileId & key", required = true) @PathParam("Param") String Param);
+	   public String removeKey(@ApiParam(value = "fileId",required=true) @QueryParam("fileId") String fileId,
+			   @ApiParam(value = "key",required=true) @QueryParam("key") String key)throws DocApplicationException;
 	   
 	   @PUT
 	   @Path("/setExpireTimestamp")

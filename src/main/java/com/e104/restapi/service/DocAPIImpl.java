@@ -945,9 +945,19 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String removeKey(String Param) {
-		// TODO Auto-generated method stub
-		return null;
+	public String removeKey(String fileId, String key)throws DocApplicationException {
+		JSONObject rtn = new JSONObject();
+		try{
+		DynamoService dynamoService = new DynamoService();
+		dynamoService.deleteAttribute(Config.document, fileId, key);
+		
+		rtn.put("txid", tools.generateTxid());
+		rtn.put("status", "Success");
+		} catch (Exception e) {
+			throw new DocApplicationException("", 1);
+			//System.out.println("com.e104.DocumentManagement removeKey("+fileid+","+key+") Exception : "+e);
+		}
+		return rtn.toString();
 	}
 	
 	/**
