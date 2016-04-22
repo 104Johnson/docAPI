@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.kinesisfirehose.AmazonKinesisFirehoseClient;
 import com.amazonaws.services.kinesisfirehose.model.PutRecordRequest;
@@ -61,9 +62,9 @@ public class TraceLog {
 			
 			//AWSCredentials credentials = null;
 			
-			//credentials = new DefaultAWSCredentialsProviderChain();
+			//credentials =  new InstanceProfileCredentialsProvider().getCredentials();
 			// Firehose client
-	        firehoseClient = new AmazonKinesisFirehoseClient();
+	        firehoseClient = new AmazonKinesisFirehoseClient(new DefaultAWSCredentialsProviderChain());
 	        firehoseClient.setRegion(RegionUtils.getRegion("us-west-2"));
 	       
 	        // Put record into the DeliveryStream
