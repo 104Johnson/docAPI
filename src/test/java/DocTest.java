@@ -54,11 +54,11 @@ public class DocTest {
 
 	@Test
 	public void test() throws DocApplicationException {
-		healthCheck();
+		/*healthCheck();
 		decryptParam();
 		encryptParam();
 		addKey();
-		removeKey();
+		removeKey();*/
 		
 	}
 	private void healthCheck(){
