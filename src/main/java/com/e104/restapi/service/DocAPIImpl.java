@@ -127,8 +127,10 @@ public class DocAPIImpl implements IDocAPI{
 	}
 
 	@Override
-	public String decryptParam(String param) {
+	public String decryptParam(String param) throws DocApplicationException {
 		param = tools.decode(param);
+		if (param==null || "".equals(param))
+			throw new DocApplicationException("Data Decrypt Fail", 16);
     	return param;
 	}
 

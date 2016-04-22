@@ -103,7 +103,7 @@ public interface IDocAPI {
 	   @ApiOperation(value = "Data encrypt", notes = "EncryptParam", httpMethod = "GET")
 	   @ApiResponses(value =  @ApiResponse(code = 200, message = "Successful response"))
 	   @ApiImplicitParam(name = "param", value = "EncryptCode", required = true, dataType = "string", paramType = "string") 	  
-	   public String decryptParam(@ApiParam(value = "decrypt data", required = true) @PathParam("param") String param);
+	   public String decryptParam(@ApiParam(value = "decrypt data", required = true) @PathParam("param") String param)throws DocApplicationException;
 	   
 	   @POST
 	   @Path("/encryptParam")
