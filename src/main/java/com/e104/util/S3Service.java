@@ -1,13 +1,19 @@
 package com.e104.util;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 
+
+
+
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.e104.Errorhandling.DocApplicationException;
 
@@ -41,5 +47,14 @@ public class S3Service {
 			throw new DocApplicationException("S3 delete fail", 15);
 		}
 		return fileList.size();
+	}
+	public String uploadFile(String bucketName, String fileName){
+		AmazonS3 client = s3Client();
+		ClassLoader classLoader = getClass().getClassLoader();
+		 File file = new File(classLoader.getResource("resources/Penguins.jpg").getFile());
+		 PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, 
+				 fileName, file);
+		 client.putObject(putObjectRequest);
+		return "Upload Success";
 	}
 }
