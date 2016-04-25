@@ -23,10 +23,10 @@ import com.e104.util.DynamoService;
 import com.e104.util.tools;
 
 public class DynamoConvert {
-	private byte[] fileId;
-	private int contentType;
+	private byte[] fileid;
+	private int contenttype;
 	private String apnum;
-	private String filePath;
+	private String filepath;
 	private String insertDate;
 	private String triggerDate;
 	private Map<String, String> convertLists = new HashMap<String, String>();
@@ -36,10 +36,10 @@ public class DynamoConvert {
 	tools tools = new tools();
 	public void insertDynamo(JSONObject convert) throws DocApplicationException{
 		try{
-		fileId =  Hex.decodeHex(convert.getString("fileId").toCharArray());
-		contentType = convert.getInt("contentType");
+		fileid =  Hex.decodeHex(convert.getString("fileid").toCharArray());
+		contenttype = convert.getInt("contenttype");
 		apnum = convert.getString("apnum");
-		filePath = convert.getString("filePath");
+		filepath = convert.getString("filepath");
 		insertDate = convert.getString("insertDate");
 		triggerDate = convert.getString("triggerDate");
 		
@@ -56,7 +56,7 @@ public class DynamoConvert {
 		if (convert.has("videoQuality"))
 			videoQuality = new HashMap<String,String>(tools.json2MapObj(convert.getJSONObject("videoQuality")));
 		}catch(JSONException e){
-			throw new DocApplicationException("NotPresent",12);//erroehandler 必填欄位未填
+			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
 		} catch (DecoderException e) {
 			throw new DocApplicationException("Decoder失敗",1);
 		}
@@ -67,10 +67,10 @@ public class DynamoConvert {
 	private void doInsertDb() throws DocApplicationException{
 		DynamoService dynamoService = new DynamoService();
 		try{
-		Item putItem = new Item().withPrimaryKey("fileId",fileId).
-				withNumber("contentType", contentType).
+		Item putItem = new Item().withPrimaryKey("fileid",fileid).
+				withNumber("contenttype", contenttype).
 				withString("apnum", apnum).
-				withString("filePath",filePath).
+				withString("filepath",filepath).
 				withString("insertDate", insertDate).
 				withString("triggerDate", triggerDate).
 				withMap("status", status).

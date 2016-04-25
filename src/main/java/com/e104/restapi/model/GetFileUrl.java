@@ -44,9 +44,6 @@ public class GetFileUrl {
 		
 		return getfileArr;
 	}
-	public void clearFileArr(){
-		this.getfileArr.clear();
-	}
 	
 	
 	

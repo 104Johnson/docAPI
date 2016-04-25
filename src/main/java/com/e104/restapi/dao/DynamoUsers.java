@@ -19,19 +19,19 @@ import com.e104.util.tools;
 
 public class DynamoUsers {
 	private String pid;
-	private byte[] fileId;
+	private byte[] fileid;
 	private String filename;
-	private String filePath;
+	private String filepath;
 	private String apnum;
 	private String description;
-	private String insertDate;
-	private String imgStatus;
+	private String insertdate;
+	private String imgstatus;
 	private  Map<String, String> videoQuality;
 	private String convert;
 	private String title;
 	private String source;
 	private String expireTimestamp;
-	private int contentType;
+	private int contenttype;
 	private int isP;
 	private String src = "docapi::core::DynamoUsers::";
 	public String trackId = "";
@@ -49,15 +49,15 @@ public class DynamoUsers {
 		traceLog.writeKinesisLog(trackId, caller, src+"insertUsersToDynamo", "paser users Data", new JSONObject());
 		try{
 			pid = users.getString("pid");
-			fileId =  Hex.decodeHex(users.getString("fileId").toCharArray());
-			contentType = users.getInt("contentType");
+			fileid =  Hex.decodeHex(users.getString("fileid").toCharArray());
+			contenttype = users.getInt("contenttype");
 			filename = users.getString("filename");
-			filePath = users.getString("filePath");
+			filepath = users.getString("filepath");
 			apnum = users.getString("apnum");
 			description = users.getString("description");
 			title = users.getString("title");
-			insertDate = users.getString("insertDate");
-			imgStatus = users.getString("imgStatus");
+			insertdate = users.getString("insertdate");
+			imgstatus = users.getString("imgstatus");
 			convert = users.getString("convert");
 			isP = users.getInt("isP");
 			
@@ -84,14 +84,14 @@ public class DynamoUsers {
 		try{
 		DynamoService dynamoService = new DynamoService();
 
-		Item putItem = new Item().withPrimaryKey("fileId",fileId).
+		Item putItem = new Item().withPrimaryKey("fileid",fileid).
 				withString("apnum", apnum).
-				withNumber("contentType", contentType).
+				withNumber("contenttype", contenttype).
 				withString("convert", convert).
 				withString("filename", filename).
-				withString("filePath", filePath).
-				withString("imgStatus", imgStatus).
-				withString("insertDate",insertDate).
+				withString("filepath", filepath).
+				withString("imgstatus", imgstatus).
+				withString("insertdate",insertdate).
 				withNumber("isP",isP).
 				withString("pid", pid).
 				withString("description", description).
