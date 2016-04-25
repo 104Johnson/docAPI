@@ -1,23 +1,10 @@
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
-
-
-
-
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -25,9 +12,34 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import scala.reflect.internal.Trees.New;
+
 import com.amazonaws.services.support.model.CaseCreationLimitExceededException;
 import com.e104.Errorhandling.DocApplicationException;
+import com.e104.restapi.model.Extra;
+import com.e104.restapi.model.GetFileArr;
+import com.e104.restapi.model.GetFileUrl;
+import com.e104.restapi.model.MultiAction;
+import com.e104.restapi.model.Signature;
+import com.e104.restapi.model.VideoImageSize;
 import com.e104.restapi.service.DocAPIImpl;
+import com.e104.util.Config;
+import com.e104.util.S3Service;
 
 
 
@@ -58,7 +70,11 @@ public class DocTest {
 		decryptParam();
 		encryptParam();
 		addKey();
-		removeKey();*/
+		removeKey();
+		discardFile();
+		signature();
+		getFileUrl();
+		generateFileId();*/
 		
 	}
 	private void healthCheck(){
@@ -99,11 +115,14 @@ public class DocTest {
 			//Case 1
 			response = docAPIImpl.removeKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled");
 			responseObject = new JSONObject(response);
+			assertEquals("Success",responseObject.getString("status"));
 			
+			//Case 2
+			response = docAPIImpl.removeKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled");
 			
 		}
 		  catch (DocApplicationException e) {
-			if (e.getMessage()!="FileId is not exist" && e.getMessage()!="Field value is null")
+			if (e.getMessage()!="FileId or key is not exist")
 				fail("[Error]"+e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -160,7 +179,180 @@ public class DocTest {
 			fail("[Error]"+e.getMessage());
 		}
 	}
+	private void discardFile(){
+		JSONObject responseObject;
+		try {
+			//Case 1
+			response = docAPIImpl.discardFile("6dde8a907a3549c1afca3003b9e61a1111");
+			responseObject = new JSONObject(response);
+			assertEquals("Success",responseObject.getString("status"));
+		
+			S3Service s3Service = new S3Service();
+			response = s3Service.uploadFile(Config.bucketName, "e8e/1dd/5e9/6dde8a907a3549c1afca3003b9e61a1111.jpg");
+			assertEquals("Upload Success",response);
+			docAPIImpl.removeKey("6dde8a907a3549c1afca3003b9e61a1111", "disabled");
+			docAPIImpl.removeKey("6dde8a907a3549c1afca3003b9e61a1111", "discardDate");
+			
+			//Case 2 FileId is not exist
+			response = docAPIImpl.discardFile("1");
+			
+		}
+		  catch (DocApplicationException e) {
+			  e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+		
+	}
 	
+	private void signature(){
+		JSONObject responseObject;
+		
+		Signature signature = new Signature();
+		Extra extra = new Extra();
+		List<MultiAction> multiAction = new ArrayList<MultiAction>();
+		List<VideoImageSize> videoImageSize = new ArrayList<VideoImageSize>();
+		
+		signature.setContentDisposition("Penguins.jpg");
+		signature.setApnum("10400");
+		signature.setContenttype("image/jpeg");
+		signature.setDescription("測試");
+		
+		extra.setConvert("false");
+		extra.setExtraNo("09b87a95-6ef4-4d23-aca6-660521a3968e");
+		extra.setMultiAction(multiAction);
+		extra.setVideoImageSize(videoImageSize);
+		
+		signature.setExtra(extra);
+		signature.setIsP("1");
+		signature.setPid("10400");
+		signature.setTitle("測試");
+		
+		
+		try {
+			//case 1 
+			response = docAPIImpl.signature(signature);
+			responseObject = new JSONObject(response);
+			assertFalse(responseObject.has("policyDocument")&& 
+					"".equals(responseObject.getString("policyDocument")));
+			assertFalse(responseObject.has("signature")&& 
+					"".equals(responseObject.getString("signature")));
+			assertFalse(responseObject.has("objectKey")&& 
+					"".equals(responseObject.getString("objectKey")));
+			assertFalse(responseObject.has("bucketName") && 
+					"".equals(responseObject.getString("bucketName")));
+			assertFalse(responseObject.has("contentDisposition") && 
+					"".equals(responseObject.getString("contentDisposition")));
+			
+			assertEquals("Penguins.jpg",responseObject.getString("contentDisposition"));
+			
+			//case 2
+			signature.setContentDisposition(null);
+			response = docAPIImpl.signature(signature);
+			responseObject = new JSONObject(response);
+			
+			
+		} catch (DocApplicationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			if (e.getMessage() =="Service Error")
+				fail("[Error]"+e.getMessage());
+		}
+	}
 	
+	private void getFileUrl(){
+		JSONArray responseArray;
+		GetFileUrl getFileUrl = new GetFileUrl();
+		GetFileArr getFileArr = new GetFileArr();
+		List<GetFileArr> getFileArrs = new ArrayList<>();
+		
+		getFileArr.setFileId("6dde8a907a3549c1afca3003b9e61a1111");
+		getFileArr.setFileTag("");
+		getFileArr.setProtocol("common");
+		getFileArrs.add(getFileArr);
+		
+		
+		Long timestamp = System.currentTimeMillis(); 
+		getFileUrl.setFileArr(getFileArrs);
+		getFileUrl.setTimestamp(String.valueOf((timestamp+10000)/1000));
+
+		
+		try {
+			//Case 1
+			response = docAPIImpl.getFileUrl(getFileUrl);
+			responseArray = new JSONArray(response);
+			assertEquals("6dde8a907a3549c1afca3003b9e61a1111",responseArray.getJSONObject(0).getString("fileId"));
+			assertNotNull(responseArray.getJSONObject(0).getJSONArray("url"));
+
+		}catch (DocApplicationException e) {
+			e.printStackTrace();
+		}catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+		
+		try{
+			//Case 2
+			getFileUrl.setTimestamp(null);
+			response = docAPIImpl.getFileUrl(getFileUrl);
+		}catch(DocApplicationException e){
+			if (e.getMessage()!="Empty parameter")
+				fail("[Error]"+e.getMessage());
+		}catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+		
+		try{
+			//Case 3
+			getFileUrl.setTimestamp(String.valueOf((timestamp+10000)/1000));
+			getFileUrl.clearFileArr();
+			response = docAPIImpl.getFileUrl(getFileUrl);
+		}catch(DocApplicationException e){
+			if (e.getMessage()!="Empty parameter")
+				fail("[Error]"+e.getMessage());
+			//e.printStackTrace();
+		}catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+		
+		try{
+			//Case 4
+			getFileArr.setFileId("1");
+			getFileArr.setFileTag("");
+			getFileArr.setProtocol("common");
+			getFileArrs.add(getFileArr);
+			getFileUrl.setFileArr(getFileArrs);
+			
+			response = docAPIImpl.getFileUrl(getFileUrl);
+		}catch(DocApplicationException e){
+			if (e.getMessage()!="FileId is not exist")
+				fail("[Error]"+e.getMessage());
+		}catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+	}
+	
+	private void generateFileId(){
+		JSONObject responseObject;
+		try {
+			//Case 1
+			response = docAPIImpl.generateFileId("", "1", "1");
+			responseObject = new JSONObject(response);
+			
+			//Case 2 FileId is not exist
+			response = docAPIImpl.discardFile("1");
+			
+		}
+		  catch (DocApplicationException e) {
+			  e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("[Error]"+e.getMessage());
+		} 
+	}
 
 }
