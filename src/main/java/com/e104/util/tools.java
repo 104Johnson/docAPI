@@ -391,12 +391,12 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 		//start
 		//end
 		
-		String filepath = this.get_file_keypath(obj.getString("filepath"));
+		String filepath = this.get_file_keypath(obj.getString("filePath"));
 		//String filepath = obj.getString("filepath");
 		// String filetype = "."+FilenameUtils.getExtension(obj.getString("filepath"));
 		
 		//String filename = obj.getString("filename");	// 從 filename 取 extension 會有大小寫區分.
-		String extFromFileName = this.get_file_extension(obj.getString("filepath"));
+		String extFromFileName = this.get_file_extension(obj.getString("filePath"));
 		
 		
 		// String fileCheckExist = "";
@@ -495,10 +495,10 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
  			Logger.info("user call getFileUrl with target parameter => " + target);
  			
  			if(target.equals("origin")){
- 				targetFileName = obj.getString("filepath");
+ 				targetFileName = obj.getString("filePath");
  			}
  			// 僅 Doc Type 允許取得 PDF.
- 			else if(target.equals("pdf") && obj.getInt("contenttype") == ContentType.Doc){
+ 			else if(target.equals("pdf") && obj.getInt("contentType") == ContentType.Doc){
  				targetFileName = filepath + ".pdf";
  			}
  		}
@@ -520,7 +520,7 @@ public JSONObject resolveSingleFileUrl(String fileId, JSONObject obj, JSONObject
 	        String filetype = "."+ tmp.getString("fileExtension");
 	          
 			JSONObject tmp_obj = null;
-			switch(obj.getInt("contenttype")){
+			switch(obj.getInt("contentType")){
 				case ContentType.Image://圖片																		
 					if(!isEmpty(fileTag)) {
 						filepath += "_" + fileTag;

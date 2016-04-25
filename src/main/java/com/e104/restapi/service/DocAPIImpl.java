@@ -325,42 +325,42 @@ public class DocAPIImpl implements IDocAPI{
 		
 		JSONObject rtn = new JSONObject();
 		try{
-			if(tools.isEmpty(fileId)){
-				Logger.error("fileId is empty.");
-				return rtn.put("status", "fail").put("error", "fileId is empty.").toString();
-			}
+			if(tools.isEmpty(fileId))
+				throw new DocApplicationException("fileId is empty", 3);
+				
+			
 			
 			JSONObject filedetail = new JSONObject(getFileDetail(fileId, ""));
 			
-			if(tools.isEmpty(filedetail, "fileid")){
-				Logger.error("fileId not exists.");
-				throw new DocApplicationException("fileId not exists.", 15);
-			}
+			if(tools.isEmpty(filedetail, "fileId"))
+				throw new DocApplicationException("fileId not exists.", 13);
 			
-			String filepath = filedetail.getString("filepath");
+			
+			String filepath = filedetail.getString("filePath");
 			//String dirPath = FilenameUtils.getFullPath(filepath);
 			String dirPath = tools.get_file_keypath(filepath);
 			
-			if(dirPath!=null && !"".equals(dirPath)){
-				//dirPath =  + dirPath;
-				S3Service s3Service = new S3Service();
-				int fileCount = s3Service.deleteFolder(Config.bucketName, dirPath);
-				
-					addKey(fileId, "disabled", "1");
-					
-					String discardDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-					addKey(fileId, "discardDate", discardDate);
-					
-					return rtn.put("status", "success").put("message", fileCount + " rows deleted.").toString();
-				
-			}
-			else{
-				throw new DocApplicationException("invalid filepath location.", 15);
-			}
+			if(dirPath==null || "".equals(dirPath))
+				throw new DocApplicationException("invalid filepath location.", 13);
+			
+			//dirPath =  + dirPath;
+			S3Service s3Service = new S3Service();
+			int fileCount = s3Service.deleteFolder(Config.bucketName, dirPath);
+			
+			addKey(fileId, "disabled", "1");
+			
+			String discardDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			addKey(fileId, "discardDate", discardDate);
+			
+			return rtn.put("status", "Success").put("message", fileCount + " rows deleted.").toString();
+			
+		}
+		catch(DocApplicationException e){
+			throw e;
 		}
 		catch(Exception e){
-			Logger.error("discardFile error", e);
-			throw new DocApplicationException("fileId is empty.", 15);
+			//Logger.error("discardFile error", e);
+			throw new DocApplicationException("Delete file fail.", 15);
 		}
 	}
 
@@ -535,7 +535,7 @@ public class DocAPIImpl implements IDocAPI{
 		    !paramObj.has("contenttype") || "".equals(paramObj.getString("contenttype")) ||
 		    !paramObj.has("title") || "".equals(paramObj.getString("title")) ||
 		    !paramObj.has("description") || "".equals(paramObj.getString("description")))
-			throw new DocApplicationException("NotPresent",1);//erroehandler 必填欄位未填
+			throw new DocApplicationException("Empty parameter",3);//erroehandler 必填欄位未填
 
 		String apNum = paramObj.getString("apnum");
 		String pid = paramObj.getString("pid");
@@ -558,32 +558,32 @@ public class DocAPIImpl implements IDocAPI{
 		String filepath_forS3 ="";
 		
 		// 2014/09/26 檢查 extra 中是否有帶入 fileId, 若不存在才自行建立.
-		String fileid = null;
+		String fileId = null;
 		//JSONObject extraJson = new JSONObject(jsonObj);
 		if(extra_json.has("fileId")){
-			fileid = extra_json.getString("fileId");
-			Logger.info("use fileid passed from frontend => " + fileid);
+			fileId = extra_json.getString("fileId");
+			Logger.info("use fileid passed from frontend => " + fileId);
 			
 			// check fileId is not in use.
 			DynamoService dynamoService = new DynamoService();
-			JSONObject user = new JSONObject( dynamoService.getItem(Config.document, fileid));
+			JSONObject user = new JSONObject( dynamoService.getItem(Config.document, fileId));
 			
 			if(user.length()<=0){
 				Logger.info("fileid not in use, check passed.");
 			}
 			else{
-				Logger.error("provided fileid is in use. => " + fileid);
+				Logger.error("provided fileid is in use. => " + fileId);
 				throw new DocApplicationException("NotValid;provided fileid is in use",2);			
 			}
 			
 		}else{
-		    fileid = tools.generateFileId(contentType,paramObj.getInt("isP"));
-			Logger.info("create new fileid => " + fileid);
+		    fileId = tools.generateFileId(contentType,paramObj.getInt("isP"));
+			Logger.info("create new fileid => " + fileId);
 		}
 
 
 		//filePath產生檔案位置
-		String filepath = tools.generateFilePath(fileid);
+		String filepath = tools.generateFilePath(fileId);
 		
 		//long time1 = 0L ;
 		//NumberFormat nf = NumberFormat.getInstance();
@@ -591,7 +591,7 @@ public class DocAPIImpl implements IDocAPI{
 		//判斷filename是否為null or 空值, 如filename有資料則進行檔案存檔
         if (fileName != null && !"".equals(fileName)) {
         	//Db內串出filepath&fileName
-			filepath_forS3 = filepath + fileid + fileName.substring(fileName.lastIndexOf("."),fileName.length()).toLowerCase();
+			filepath_forS3 = filepath + fileId + fileName.substring(fileName.lastIndexOf("."),fileName.length()).toLowerCase();
 			status = "Success";
         }
         
@@ -611,10 +611,10 @@ public class DocAPIImpl implements IDocAPI{
         	*/
         	// 將轉檔工作轉換成  json tasks object.
         	JSONObject convert = new JSONObject();
-        	convert.put("fileid", fileid);
-        	convert.put("contenttype", contentType);
+        	convert.put("fileId", fileId);
+        	convert.put("contentType", contentType);
         	convert.put("apnum", apNum);
-        	convert.put("filepath", filepath_forS3); 
+        	convert.put("filePath", filepath_forS3); 
         	convert.put("insertDate", now);
         	convert.put("triggerDate", now);
         	convert.put("status", new JSONObject());		// 預先建立轉檔狀態欄位.
@@ -712,7 +712,7 @@ public class DocAPIImpl implements IDocAPI{
 	        			syncActions.put(action);	// 預設均為同步
 	        		}
 	        	}
-	        	Logger.info("analize sync/async image convert type: fileid => " + fileid + ", total => " + maArray.length() + ", sync => " + syncActions.length() + ", async => " + asyncActions.length());		        				        		
+	        	Logger.info("analize sync/async image convert type: fileid => " + fileId + ", total => " + maArray.length() + ", sync => " + syncActions.length() + ", async => " + asyncActions.length());		        				        		
         	}
         	else{
     			Logger.info("putFile target is not type of image or without multiAction param.");
@@ -721,18 +721,18 @@ public class DocAPIImpl implements IDocAPI{
         	// String db_filepath = "";
         	JSONObject insert = new JSONObject();
     		insert.put("pid", pid);
-    		insert.put("fileid", fileid);
-    		insert.put("contenttype", contentType);
+    		insert.put("fileId", fileId);
+    		insert.put("contentType", contentType);
     		insert.put("filename", fileName);
     		//modify by JasonHsiao on 2013-07-29 , 附檔名轉小寫
     		//2014-01-09 fix for generateFilePath don't use parma contentType
 //	    		db_filepath = tools.generateFilePath(fileid)+fileid + fileName.substring(fileName.lastIndexOf("."),fileName.length()).toLowerCase();
-    		insert.put("filepath", filepath_forS3);   		
+    		insert.put("filePath", filepath_forS3);   		
     		insert.put("apnum", apNum);
     		insert.put("title", title);
     		insert.put("description", description);
-    		insert.put("insertdate", now);
-    		insert.put("imgstatus","pending");
+    		insert.put("insertDate", now);
+    		insert.put("imgStatus","pending");
     		
     		if(contentType == ContentType.Video || contentType == ContentType.WbVideo)
     			insert.put("videoQuality", videoQualityObj);
@@ -794,7 +794,7 @@ public class DocAPIImpl implements IDocAPI{
 		        		//insert data to docConvert table for jar to execute docConvertToPdf,multiAction,pdfToImg
 		        		JSONObject insertDocConvert = new JSONObject();
 		        		insertDocConvert.put("txid", txid);
-		        		insertDocConvert.put("fileid", fileid);
+		        		insertDocConvert.put("fileId", fileId);
 		        		insertDocConvert.put("filePath", filepath_forS3);
 		        		insertDocConvert.put("docToPdf", "pending");
 		        		insertDocConvert.put("doMultiAction", "pending");
@@ -884,7 +884,7 @@ public class DocAPIImpl implements IDocAPI{
 			        	//rtn.put("url", new JSONObject(ir.multiAction(fileid, syncActions.toString())));
 			        	
 			        	String multiAction = syncActions.length() > 0 ? syncActions.toString() : extra_json.getJSONArray("multiAction").toString();
-			        	rtn.put("url", new JSONObject(ir.multiAction(fileid, multiAction)));
+			        	rtn.put("url", new JSONObject(ir.multiAction(fileId, multiAction)));
 			        	Logger.info(multiAction.length() + " sync multiAction items processed => " + multiAction.toString());
 			        	
 			        	// rtn.put("url", new JSONObject(ir.multiAction(fileid, syncActions.toString())));
@@ -904,7 +904,7 @@ public class DocAPIImpl implements IDocAPI{
 				        		 * }
 				        	*/
 				        	
-				        	queueItem.put("fileId", fileid);
+				        	queueItem.put("fileId", fileId);
 //					        	String saveToQueueResult = qs.saveToQueue(queueItem.toString(), "maConvert");
 				        	//TODO Johnson 送Queue步驟待確認，是否還需要
 				        	/*String saveToQueueResult = qs.saveToQueue(queueItem.toString(), Config.QName_MA); 
@@ -921,11 +921,11 @@ public class DocAPIImpl implements IDocAPI{
 		        if(extra_json.has("expireTimestamp")){
 		        	String expireTimestamp = String.valueOf(extra_json.getLong("expireTimestamp"));
 		        	Logger.info("putFile with expireTimestamp: " + expireTimestamp);
-		        	this.setExpireTimestamp(fileid, expireTimestamp);
+		        	this.setExpireTimestamp(fileId, expireTimestamp);
 		        }
 		        			        
 		        //回傳值
-	        	rtn.put("fileId", fileid);
+	        	rtn.put("fileId", fileId);
 	        	rtn.put("fileName", fileName);
 	        	rtn.put("filePath",filepath_forS3);
 	        	rtn.put("contenttype", tools.getContentType(contentType));
@@ -934,9 +934,13 @@ public class DocAPIImpl implements IDocAPI{
         
 		
 		}catch(JSONException e){
-			throw new DocApplicationException("NotPresent",3);//erroehandler 必填欄位未填
-		} catch (DecoderException e) {
+			throw new DocApplicationException("Json format error",3);//erroehandler 必填欄位未填
+		}catch (DecoderException e) {
 			throw new DocApplicationException("DB operation failed",13);
+		}catch(DocApplicationException e){
+			throw e;
+		}catch(Exception e){
+			throw new DocApplicationException("Service Error", 99);
 		} 
 
 		
@@ -954,7 +958,7 @@ public class DocAPIImpl implements IDocAPI{
 		rtn.put("txid", tools.generateTxid());
 		rtn.put("status", "Success");
 		} catch (Exception e) {
-			throw new DocApplicationException("", 1);
+			throw new DocApplicationException("FileId or key is not exist", 12);
 			//System.out.println("com.e104.DocumentManagement removeKey("+fileid+","+key+") Exception : "+e);
 		}
 		return rtn.toString();
@@ -1638,233 +1642,234 @@ public class DocAPIImpl implements IDocAPI{
 				//System.out.println("ok"+jsonObj.getJSONArray("getFileArr").toString());
 			
 				//Object.getFileId()
-			if(jsonData != null && 
-				(jsonObj.has("timestamp") && 
-			    !"".equals(jsonObj.getString("timestamp"))) &&
-			    (jsonObj.has("getFileArr") && 
-			    !"".equals(jsonObj.getJSONArray("getFileArr").toString()))){
+				System.out.print(jsonObj.getJSONArray("getFileArr").toString());
+			if(jsonData == null || jsonObj.isNull("timestamp") || jsonObj.isNull("getFileArr") ||
+					(jsonObj.has("timestamp") && "".equals(jsonObj.getString("timestamp"))) ||
+					(jsonObj.has("getFileArr") && jsonObj.getJSONArray("getFileArr").length()<=0))
+				throw new DocApplicationException("Empty parameter", 3);
 			
-				String timestamp = jsonObj.getString("timestamp");
-				//JSONArray jsonarr =  jsonObj.getJSONArray("getFileArr");
-				// 針對不在 cache 中的資料進行 mongo 查詢.
-				JSONArray userData = jsonObj.getJSONArray("getFileArr");
-				
 			
-				extra.put("getFileArr",userData).put("timestamp", timestamp);
-				//extra.put("timestamp",timestamp);
+			String timestamp = jsonObj.getString("timestamp");
+			//JSONArray jsonarr =  jsonObj.getJSONArray("getFileArr");
+			// 針對不在 cache 中的資料進行 mongo 查詢.
+			JSONArray userData = jsonObj.getJSONArray("getFileArr");
+			
+		
+			extra.put("getFileArr",userData).put("timestamp", timestamp);
+			//extra.put("timestamp",timestamp);
+			
+			//System.out.println(context.getHttpServletRequest().getHeader("X-caller"));
+			traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::Start",extra);
+			
+			
+			JSONArray users = new JSONArray(dynamoService.getItems(Config.document,userData));
+			JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
+			
+			
 				
-				//System.out.println(context.getHttpServletRequest().getHeader("X-caller"));
-				traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::Start",extra);
+				for(int i = 0; i < users.length(); i++){
+					//判斷資料是否被砍
+					System.out.println(users.getJSONObject(i));
+					JSONObject user = users.getJSONObject(i);
+					if(user.has("disabled") && user.get("disabled").toString().equals("1")) continue;
+					jomongos.put(user.getString("fileId"), user);
+					Logger.info("apnum={},filepath={}",users.getJSONObject(i));
+				}		
+				//將JSON轉為jsonarray
+				//String msql="";
+				JSONArray jsonarr1 = jsonObj.getJSONArray("getFileArr");
 				
+				/*replace all fileid_uuid xxxxxxaa to fileid*/
+				// modify by jj on 2013-12-04 fix replace UUIDaa to fileId 
 				
-				JSONArray users = new JSONArray(dynamoService.getItems(Config.document,userData));
-				JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
-					
+				JSONObject fileidUUIDaaObjMap = new JSONObject();
+				JSONObject queryFileIdAndUUIDaaMap = new JSONObject();	 // 用於紀錄 fileid <-> filidaa 對應. 於 getFileUrl 解析完成後置換回來
 				
+				// logger.info("htmlToLink: getFileUrl replace before"+ jsonarr1.toString());
+				for(int i=0;i<jsonarr1.length();i++){
+					String fileid_temp = jsonarr1.getJSONObject(i).getString("fileId");
 					
-					for(int i = 0; i < users.length(); i++){
-						//判斷資料是否被砍
-						System.out.println(users.getJSONObject(i));
-						JSONObject user = users.getJSONObject(i);
-						if(user.has("disabled") && user.get("disabled").toString().equals("1")) continue;
-						jomongos.put(user.getString("fileid"), user);
-						Logger.info("apnum={},filepath={}",users.getJSONObject(i));
-					}		
-					//將JSON轉為jsonarray
-					//String msql="";
-					JSONArray jsonarr1 = jsonObj.getJSONArray("getFileArr");
 					
-					/*replace all fileid_uuid xxxxxxaa to fileid*/
-					// modify by jj on 2013-12-04 fix replace UUIDaa to fileId 
-					
-					JSONObject fileidUUIDaaObjMap = new JSONObject();
-					JSONObject queryFileIdAndUUIDaaMap = new JSONObject();	 // 用於紀錄 fileid <-> filidaa 對應. 於 getFileUrl 解析完成後置換回來
-					
-					// logger.info("htmlToLink: getFileUrl replace before"+ jsonarr1.toString());
-					for(int i=0;i<jsonarr1.length();i++){
-						String fileid_temp = jsonarr1.getJSONObject(i).getString("fileId");
-						
-						
-						if(!tools.isEmpty(fileid_temp)){		
+					if(!tools.isEmpty(fileid_temp)){		
 
-							String real_fileid = null;
+						String real_fileid = null;
+						
+						if(fileid_temp.endsWith("aa")){
 							
-							if(fileid_temp.endsWith("aa")){
-								
-								String fileid_aa = fileid_temp;			// 重新正名區域變數, 避免混淆.
-								
+							String fileid_aa = fileid_temp;			// 重新正名區域變數, 避免混淆.
+							
 //								JSONObject fileidFileaaMapObj = new JSONObject(); 
-								// fileid aa 的 key 不像 getFileUrl 的參數那麼多, 因此 key 值採用簡單處理 (不用json string 來呈現).
-								String cacheKey = "fUrl:aa:" + fileid_aa;
+							// fileid aa 的 key 不像 getFileUrl 的參數那麼多, 因此 key 值採用簡單處理 (不用json string 來呈現).
+							String cacheKey = "fUrl:aa:" + fileid_aa;
+							
+							try{
+								RedisService redisService = new RedisService();
+								//MemcachedClient redis = redisService.redisClient(); 
+								Jedis redis =  redisService.jedisClient();
+								//redis = Redis.getInstance("FileManage", "RE600001");
+								// redis.open();
 								
-								try{
-									RedisService redisService = new RedisService();
-									//MemcachedClient redis = redisService.redisClient(); 
-									Jedis redis =  redisService.jedisClient();
-									//redis = Redis.getInstance("FileManage", "RE600001");
-									// redis.open();
-									
-									String cached_aa_fileid = redis.get(cacheKey).toString();
-									if(!tools.isEmpty(cached_aa_fileid)){
-										queryFileIdAndUUIDaaMap.put(cached_aa_fileid, fileid_aa);		// 用於紀錄 fileid <-> filidaa 對應. 於 getFileUrl 解析完成後置換回來
-										real_fileid = cached_aa_fileid;
-									}
+								String cached_aa_fileid = redis.get(cacheKey).toString();
+								if(!tools.isEmpty(cached_aa_fileid)){
+									queryFileIdAndUUIDaaMap.put(cached_aa_fileid, fileid_aa);		// 用於紀錄 fileid <-> filidaa 對應. 於 getFileUrl 解析完成後置換回來
+									real_fileid = cached_aa_fileid;
 								}
-								catch(Exception e){
-									Logger.error("fail to get aa url cache from redis.", e);
-									throw new DocApplicationException("Redis Error", 14);
-								}
-								finally{
+							}
+							catch(Exception e){
+								Logger.error("fail to get aa url cache from redis.", e);
+								throw new DocApplicationException("Redis Error", 14);
+							}
+							finally{
 //									if(redis != null)
 //										redis.close();
-								}
-								
-								
-								// 若 aa fileid 找不到對應的 cache, 就到 mongo 抓.
-								// if(real_fileid == null){
-								if(tools.isEmpty(real_fileid)){	
-									JSONObject uuidaaObj = new JSONObject(tools.html_img_fileid(fileid_aa));
+							}
+							
+							
+							// 若 aa fileid 找不到對應的 cache, 就到 mongo 抓.
+							// if(real_fileid == null){
+							if(tools.isEmpty(real_fileid)){	
+								JSONObject uuidaaObj = new JSONObject(tools.html_img_fileid(fileid_aa));
 //									logger.info("load fileidaa [" + fileid_aa + "] => " + uuidaaObj.toString());
-									
-									if(!tools.isEmpty(uuidaaObj, "fileId")){
-										real_fileid = uuidaaObj.getString("fileId");
-									}
+								
+								if(!tools.isEmpty(uuidaaObj, "fileId")){
+									real_fileid = uuidaaObj.getString("fileId");
+								}
 
-									// uuidaaObj 有可能有資料, 卻沒有 fileId, 因為 putFile 還在執行中就收到 getFileUrl 請求了.
-									fileidUUIDaaObjMap.put(tools.isEmpty(real_fileid) ? fileid_aa : real_fileid, uuidaaObj);
+								// uuidaaObj 有可能有資料, 卻沒有 fileId, 因為 putFile 還在執行中就收到 getFileUrl 請求了.
+								fileidUUIDaaObjMap.put(tools.isEmpty(real_fileid) ? fileid_aa : real_fileid, uuidaaObj);
 //									fileidUUIDaaObjMap.put(fileid_aa, uuidaaObj);		// user always query by fileidaa.
-									
+								
 //									logger.info("fileidUUIDaaObjMap => " + fileidUUIDaaObjMap.toString());
-									
+								
 //									real_fileid = tools.html_img_fileid(fileid_temp);
-									
+								
 //									if(!isEmpty(real_fileid)){
 //										// 設置 aa fileid 對應的實際 fileid.
 //										setUrlCache(cacheKey, real_fileid);
 //									}
-								}							
+							}							
+							
+							// 若 real_fileid 仍是空值, 表示 fileidaa 在 htmllink 中也不存在
+							if(tools.isEmpty(real_fileid)){
+								// 對應的 fileid 不存在, 以 fileidaa 做為 fileid 以讓後續程序能執行.
 								
-								// 若 real_fileid 仍是空值, 表示 fileidaa 在 htmllink 中也不存在
-								if(tools.isEmpty(real_fileid)){
-									// 對應的 fileid 不存在, 以 fileidaa 做為 fileid 以讓後續程序能執行.
-									
-									// 若轉貼連  putFile 還在執行中就收到 getFileUrl 請求了.
-									// 這時有可能 real_fileid 是空的, 但 uuidaaObj 有值, 
-									// 這裡將 real_fileid 換成 uuidaa 讓後續能夠呈現目前 fileidUuidaaMap 的轉檔狀態 (存放於 fileidUUIDaaObjMap 中的 uuidaaObj)
-									real_fileid = fileid_temp;
-								}
-								
-//								fileidFileaaMapObj.put(real_fileid, fileid_temp);
-//								fileidUUIDaaObjMap.put(real_fileid, fileidFileaaMapObj);
-								// logger.info("htmlToLink getFileUrl fileid_temp-->"+ fileid_temp+" real_fileid-->" +real_fileid);
-								// logger.info("[doc debug] getFileUrl fileid_aa-->"+ fileid_temp+" real_fileid-->" +real_fileid);
-							} else {
+								// 若轉貼連  putFile 還在執行中就收到 getFileUrl 請求了.
+								// 這時有可能 real_fileid 是空的, 但 uuidaaObj 有值, 
+								// 這裡將 real_fileid 換成 uuidaa 讓後續能夠呈現目前 fileidUuidaaMap 的轉檔狀態 (存放於 fileidUUIDaaObjMap 中的 uuidaaObj)
 								real_fileid = fileid_temp;
 							}
-							jsonarr1.getJSONObject(i).put("fileId", real_fileid);
+							
+//								fileidFileaaMapObj.put(real_fileid, fileid_temp);
+//								fileidUUIDaaObjMap.put(real_fileid, fileidFileaaMapObj);
+							// logger.info("htmlToLink getFileUrl fileid_temp-->"+ fileid_temp+" real_fileid-->" +real_fileid);
+							// logger.info("[doc debug] getFileUrl fileid_aa-->"+ fileid_temp+" real_fileid-->" +real_fileid);
+						} else {
+							real_fileid = fileid_temp;
 						}
+						jsonarr1.getJSONObject(i).put("fileId", real_fileid);
 					}
-					
+				}
+				
 //					if(fileidFileaaMapArr.length() > 0)		// 降低 log 量.
 //						logger.info("fileid_aa <--> fileid => " + fileidFileaaMapArr.toString());
-					
-					if(fileidUUIDaaObjMap.length() > 0)
-						Logger.info("fileid <-> uuidaa map => " + fileidUUIDaaObjMap.toString());
-					
-					Map<String, JSONObject> cachedUrlMap = new HashMap<String, JSONObject>();	// 存放 fid <-> url data 的對應
-					List<String> keys = new ArrayList<String>();
-					
-					
-					
-					// 針對不在 cache 中的資料進行 mongo 查詢.
-					
-					JSONArray jsonarr = new JSONArray(jsonarr1.toString());
+				
+				if(fileidUUIDaaObjMap.length() > 0)
+					Logger.info("fileid <-> uuidaa map => " + fileidUUIDaaObjMap.toString());
+				
+				Map<String, JSONObject> cachedUrlMap = new HashMap<String, JSONObject>();	// 存放 fid <-> url data 的對應
+				List<String> keys = new ArrayList<String>();
+				
+				
+				
+				// 針對不在 cache 中的資料進行 mongo 查詢.
+				
+				JSONArray jsonarr = new JSONArray(jsonarr1.toString());
 //					
+				
+				StringBuilder sqlBuilder = new StringBuilder();
+				boolean hasCacheUrl = false;
+				
+				
+				// 效能考量, 查詢 mongo 時, 先濾除重覆的 fileid.
+				Set<String> distinctFileIds = new HashSet<String>();
+				
+				// 將不在 cache 中的 fid 清單找出, 用於 search mongo.
+				Iterator<String> keyObjs = cachedUrlMap.keySet().iterator();
+				
+				while(keyObjs.hasNext()){
+					String keyObj = keyObjs.next();
+					//if (deBugMode) 
+					//	logger.info("keyObjs value=> "+keyObj);
+					JSONObject cachedUrlResult = cachedUrlMap.get(keyObj);					
 					
-					StringBuilder sqlBuilder = new StringBuilder();
-					boolean hasCacheUrl = false;
-					
-					
-					// 效能考量, 查詢 mongo 時, 先濾除重覆的 fileid.
-					Set<String> distinctFileIds = new HashSet<String>();
-					
-					// 將不在 cache 中的 fid 清單找出, 用於 search mongo.
-					Iterator<String> keyObjs = cachedUrlMap.keySet().iterator();
-					
-					while(keyObjs.hasNext()){
-						String keyObj = keyObjs.next();
-						//if (deBugMode) 
-						//	logger.info("keyObjs value=> "+keyObj);
-						JSONObject cachedUrlResult = cachedUrlMap.get(keyObj);					
-						
-						if(cachedUrlResult == null){
-							String fileId = new JSONObject(keyObj.replace("fUrl:", "")).getString("fileId");
-							distinctFileIds.add(fileId);
-						}else{
-							hasCacheUrl = true;
-							// System.out.println("cached url => " + cachedUrlResult.toString());
-						}
+					if(cachedUrlResult == null){
+						String fileId = new JSONObject(keyObj.replace("fUrl:", "")).getString("fileId");
+						distinctFileIds.add(fileId);
+					}else{
+						hasCacheUrl = true;
+						// System.out.println("cached url => " + cachedUrlResult.toString());
 					}
+				}
+				
+				// 僅針對 distincted file list 做查詢.
+				Iterator<String> uncachedFileIds = distinctFileIds.iterator();
+				while(uncachedFileIds.hasNext()){
+					String uncachedFileId = uncachedFileIds.next();
 					
-					// 僅針對 distincted file list 做查詢.
-					Iterator<String> uncachedFileIds = distinctFileIds.iterator();
-					while(uncachedFileIds.hasNext()){
-						String uncachedFileId = uncachedFileIds.next();
-						
-						if (sqlBuilder.length() > 0){
-							sqlBuilder.append(",");
-						}				
-						sqlBuilder.append("\"").append(uncachedFileId).append("\"");
-					}		
-					
-					
-					
-					String mongoResult = null;
-					
-					//JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
-					
+					if (sqlBuilder.length() > 0){
+						sqlBuilder.append(",");
+					}				
+					sqlBuilder.append("\"").append(uncachedFileId).append("\"");
+				}		
+				
+				
+				
+				String mongoResult = null;
+				
+				//JSONObject jomongos= new JSONObject();	 // 從 mongo 中查詢到, 且未被 disable 的資料
+				
 //					SimpleDateFormat formatter = new SimpleDateFormat(DateUtil.DATE_FORMAT_1);
-						
-						
-						//找不到資料
+					
+					
+					//找不到資料
 //						if(jomongos.length()==0){
-						if(jomongos.length()==0 && !hasCacheUrl){	// 若 cached url 也是空的才回傳找不到資料.
+					if(jomongos.length()==0 && !hasCacheUrl){	// 若 cached url 也是空的才回傳找不到資料.
 //							JSONArray noDataRtn = new JSONArray(); 
 //							JSONObject tmp= generateGetFileDetailErrorObject("", "fileid not found");							
 //							noDataRtn.put(tmp);
-							
-							JSONArray noDataRtn = new JSONArray(); 
-							
-							//為每個 fileid 都產生 fileid not found 的訊息.
-							for(int i=0;i<jsonarr1.length();i++){
-								String fileid = jsonarr1.getJSONObject(i).getString("fileId");
-								// JSONObject tmp = generateGetFileDetailErrorObject(fileid, "fileid not found");
-								JSONObject tmp;
-								// {"4ee65980bb974b3da4a586c302996f79aa":{"UUIDaa":"4ee65980bb974b3da4a586c302996f79aa","convert":"pending"}}
-								if(fileidUUIDaaObjMap.has(fileid)){
-									JSONObject fileidUuidMapObj = fileidUUIDaaObjMap.getJSONObject(fileid);
-									String msg = fileidUuidMapObj.has("msg")?fileidUuidMapObj.getString("msg"):"";
-									tmp = tools.generateGetFileDetailErrorObject(fileid, msg);
-									tmp.put("convert", fileidUuidMapObj.getString("convert"));								 
-								}
-								else{
-									tmp = tools.generateGetFileDetailErrorObject(fileid, "fileid not found");
-								}
-								
-								noDataRtn.put(tmp);
+						
+						JSONArray noDataRtn = new JSONArray(); 
+						
+						//為每個 fileid 都產生 fileid not found 的訊息.
+						for(int i=0;i<jsonarr1.length();i++){
+							String fileid = jsonarr1.getJSONObject(i).getString("fileId");
+							// JSONObject tmp = generateGetFileDetailErrorObject(fileid, "fileid not found");
+							JSONObject tmp;
+							// {"4ee65980bb974b3da4a586c302996f79aa":{"UUIDaa":"4ee65980bb974b3da4a586c302996f79aa","convert":"pending"}}
+							if(fileidUUIDaaObjMap.has(fileid)){
+								JSONObject fileidUuidMapObj = fileidUUIDaaObjMap.getJSONObject(fileid);
+								String msg = fileidUuidMapObj.has("msg")?fileidUuidMapObj.getString("msg"):"";
+								tmp = tools.generateGetFileDetailErrorObject(fileid, msg);
+								tmp.put("convert", fileidUuidMapObj.getString("convert"));								 
 							}
-							return noDataRtn.toString();
+							else{
+								tmp = tools.generateGetFileDetailErrorObject(fileid, "fileid not found");
+							}
+							
+							noDataRtn.put(tmp);
 						}
-					
-					
-		
-					
-					// 輸出資料		
-					for(int i=0;i<jsonarr.length();i++){
-						JSONObject paramObj = jsonarr.getJSONObject(i);
-						String fileId = paramObj.getString("fileId");	
-						//if (deBugMode) 
-						//	logger.info("fileId value =>"+fileId);
+						return noDataRtn.toString();
+					}
+				
+				
+	
+				
+				// 輸出資料		
+				for(int i=0;i<jsonarr.length();i++){
+					JSONObject paramObj = jsonarr.getJSONObject(i);
+					String fileId = paramObj.getString("fileId");	
+					//if (deBugMode) 
+					//	logger.info("fileId value =>"+fileId);
 //						String fileTag = paramObj.has("fileTag") ? paramObj.getString("fileTag") : "";
 //						
 //						JSONObject keyObj = new JSONObject()
@@ -1872,42 +1877,37 @@ public class DocAPIImpl implements IDocAPI{
 //						.put("fileTag", fileTag);
 //						
 //						JSONObject cachedUrlResult = cachedUrlMap.get(keyObj.toString());
-						
-						
-							// 採用 mongo data
-							if(jomongos.has(fileId)){
-								
-								JSONObject obj = jomongos.getJSONObject(fileId); 
-								
-								// 若在 getFileUrl 中的 timestamp 值為 0, 則回傳公開的 url.
-								if(timestamp.equals("0"))
-									obj.put("isP", 1);
-								
-								JSONObject tmp = tools.resolveSingleFileUrl(fileId, obj, paramObj, timestamp, fileidUUIDaaObjMap, queryFileIdAndUUIDaaMap);
-														
-								rtn.put(tmp);	
-								
-								// process url response cache.								
-								
-							}
-							else{
-								JSONObject tmp= tools.generateGetFileDetailErrorObject(fileId, "fileid not found");
-								rtn.put(tmp);
-							}
-							Logger.info("rtn value =>"+rtn.toString());
-						
-					}
 					
+					
+						// 採用 mongo data
+						if(jomongos.has(fileId)){
+							
+							JSONObject obj = jomongos.getJSONObject(fileId); 
+							
+							// 若在 getFileUrl 中的 timestamp 值為 0, 則回傳公開的 url.
+							if(timestamp.equals("0"))
+								obj.put("isP", 1);
+							
+							JSONObject tmp = tools.resolveSingleFileUrl(fileId, obj, paramObj, timestamp, fileidUUIDaaObjMap, queryFileIdAndUUIDaaMap);
+													
+							rtn.put(tmp);	
+							
+							// process url response cache.								
+							
+						}
+						else{
+							JSONObject tmp= tools.generateGetFileDetailErrorObject(fileId, "fileid not found");
+							rtn.put(tmp);
+						}
+						Logger.info("rtn value =>"+rtn.toString());
+					
+				}
+				
 //					JSONObject cost = new JSONObject().put("cost", String.valueOf(System.currentTimeMillis() - cost_start) + "ms");
 //					rtn.put(cost);
-					traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::End",new JSONObject().put("getFileArr",rtn));
-					returnStr = rtn.toString();	
-				}else{
-					JSONArray errorRtn = new JSONArray(); 
-					JSONObject tmp= tools.generateGetFileDetailErrorObject("", "empty parameter");
-					errorRtn.put(tmp);
-					return errorRtn.toString();
-				}								
+				traceLog.writeKinesisLog(trackId, caller, src, "getFileurl::End",new JSONObject().put("getFileArr",rtn));
+				returnStr = rtn.toString();	
+												
 			}catch (JSONException e1) {		
 				Logger.error("jsonObj=>" + jsonData.toString(), e1);
 				e1.printStackTrace();
@@ -1922,6 +1922,8 @@ public class DocAPIImpl implements IDocAPI{
 				}catch(Exception e){
 					Logger.error("jsonObj=>" + Object , e);
 				};*/
+			}catch(DocApplicationException e){
+				throw e;
 			}catch(Exception e1){
 				throw new DocApplicationException(e1,3);
 			}
