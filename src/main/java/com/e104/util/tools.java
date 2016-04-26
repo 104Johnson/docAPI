@@ -291,7 +291,7 @@ public class tools {
 			
 			
 			GeneratePresignedUrlRequest generatePresignedUrlRequest = 
-			              new GeneratePresignedUrlRequest( Config.bucketName, filepath);
+			              new GeneratePresignedUrlRequest( Config.convertBucketName, filepath);
 			generatePresignedUrlRequest.setMethod(HttpMethod.GET); // Default.
 			generatePresignedUrlRequest.setExpiration(expiration);
 			             

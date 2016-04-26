@@ -298,6 +298,9 @@ public interface IDocAPI {
 	   @ApiImplicitParam(name = "param", value = "healthCheck", required = true, dataType = "string", paramType = "string") 	  
 	   public String healthCheck();
 	   
+	   @GET
+	   @Path("/action")
+	   public String action();
 	   
 	   /*
 	   @GET

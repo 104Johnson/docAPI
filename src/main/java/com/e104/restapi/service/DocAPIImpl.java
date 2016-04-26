@@ -2096,6 +2096,18 @@ private void getHeaderValue(){
 	}
 }
 
+@Override
+public String action() {
+	 double x = Math.random();
+	 double y = Math.random();
+	 double z;
+	 x = Math.toRadians(x);
+	 y = Math.toRadians(y);
+	 z = Math.sin(x) + Math.sin(y);
+	 return "Z is"+z;
+	 
+}
+
 
 		
 }
