@@ -2098,16 +2098,16 @@ private void getHeaderValue(){
 
 @Override
 public String action() {
-	while (true)
-	{
+	//while (true)
+	
 	 double x = Math.random();
 	 double y = Math.random();
 	 double z;
 	 x = Math.toRadians(x);
 	 y = Math.toRadians(y);
-	 z =( Math.sin(x)/Math.random() + Math.sin(y)*Math.random())*Math.random();
-	 //return "Z is"+z;
-	}
+	 z =Math.cos(( Math.sin(x)/Math.random() + Math.sin(y)*Math.random())*Math.random())*( Math.sin(x)/Math.random());
+	 return "Z is"+z;
+
 }
 
 
